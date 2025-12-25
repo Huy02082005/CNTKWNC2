@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Cửa hàng đồ bóng đá</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>⚽ FootballStore</h1>
+            <p>Cửa hàng đồ bóng đá chính hãng</p>
+        </div>
+
+        <div class="form-container">
+            <!-- Đăng nhập -->
+            <div class="form-box active" id="login-form">
+                <h2>Đăng nhập</h2>
+                <form id="loginForm">
+                    <div class="input-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" placeholder="Nhập email của bạn" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="login-password">Mật khẩu</label>
+                        <input type="password" id="login-password" placeholder="Nhập mật khẩu" required>
+                    </div>
+                    <div class="remember-forgot">
+                        <label class="remember">
+                            <input type="checkbox" id="remember-me">
+                            <span>Ghi nhớ đăng nhập</span>
+                        </label>
+                        <a href="../QUEN_PASS/quenpass.html" class="forgot-password">Quên mật khẩu?</a>
+                    </div>
+                    <button type="submit" class="btn-primary">Đăng nhập</button>
+                </form>
+                <p class="switch-form">
+                    Chưa có tài khoản? 
+                    <a href="#" class="switch-link" data-target="register">Đăng ký ngay</a>
+                </p>            
+            </div>
+
+            <!-- Đăng ký -->
+            <div class="form-box" id="register-form">
+                <h2>Đăng ký tài khoản</h2>
+                <form id="registerForm">
+                    <div class="input-group">
+                        <label for="register-name">Họ và tên</label>
+                        <input type="text" id="register-name" placeholder="Nhập họ và tên" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" placeholder="Nhập email của bạn" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="register-phone">Số điện thoại</label>
+                        <input type="tel" id="register-phone" placeholder="Nhập số điện thoại" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="register-password">Mật khẩu</label>
+                        <input type="password" id="register-password" placeholder="Tạo mật khẩu" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="register-confirm-password">Xác nhận mật khẩu</label>
+                        <input type="password" id="register-confirm-password" placeholder="Nhập lại mật khẩu" required>
+                    </div>
+
+                    <button type="submit" class="btn-primary">Đăng ký</button>
+                </form>
+                <p class="switch-form">
+                    Đã có tài khoản? 
+                    <a href="#" class="switch-link" data-target="login">Đăng nhập ngay</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    <script src="login.js"></script>
+</body>
+</html>

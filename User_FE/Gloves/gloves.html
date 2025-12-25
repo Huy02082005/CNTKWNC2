@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Quần Áo Bóng Đá - Đồng Phục Câu Lạc Bộ</title>
+    <link rel="stylesheet" href="gloves.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <h1>FOOTBALL<span>STORE</span></h1>
+                <p>Đồng phục bóng đá chính hãng</p>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="../TRANG_CHU/index.html">Trang chủ</a></li>
+                    <li class="dropdown">
+                        <a href="../XEM_TAT_CA/xemtatca.html">Sản phẩm <i class="fas fa-chevron-down"></i></a>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-column">
+                                <a href="../QUAN_AO/quanao.html"><h4>Quần áo</h4></a>
+                                <ul>
+                                    <li><a href="../QUAN_AO/quanao.html?league=epl">Premier League</a></li>
+                                    <li><a href="../QUAN_AO/quanao.html?league=laliga">La Liga</a></li>
+                                    <li><a href="../QUAN_AO/quanao.html?league=seriea">Serie A</a></li>
+                                    <li><a href="../QUAN_AO/quanao.html?league=bundesliga">Bundesliga</a></li>
+                                    <li><a href="../QUAN_AO/quanao.html?league=ligue1">Ligue 1</a></li>
+                                    <li><a href="../QUAN_AO/quanao.html?league=v-league">V-League</a></li>
+                                    <li><a href="../QUAN_AO/quanao.html?league=đtqg">ĐTQG</a></li>
+                                </ul>
+                            </div>
+                            <div class="dropdown-column">
+                                <a href="../GIAY/giay.html"><h4>Giày</h4></a>
+                                <ul>
+                                    <li><a href="../GIAY/giay.html?brand=nike">Nike</a></li>
+                                    <li><a href="../GIAY/giay.html?brand=adidas">Adidas</a></li>
+                                    <li><a href="../GIAY/giay.html?brand=puma">Puma</a></li>
+                                    <li><a href="../GIAY/giay.html?brand=mizuno">Mizuno</a></li>
+                                    <li><a href="../GIAY/giay.html?brand=newbalance">New Balance</a></li>
+                                </ul>
+                            </div>
+                            <div class="dropdown-column">
+                                <a href="../GANG_TAY/gangtay.html"><h4>Găng tay thủ môn</h4></a>
+                                <ul>
+                                    <li><a href="../GANG_TAY/gangtay.html?brand=nike">Nike</a></li>
+                                    <li><a href="../GANG_TAY/gangtay.html?brand=adidas">Adidas</a></li>
+                                    <li><a href="../GANG_TAY/gangtay.html?brand=puma">Puma</a></li>
+                                    <li><a href="../GANG_TAY/gangtay.html?brand=gkvn">GKVN</a></li>
+                                    
+                                </ul>
+                            </div>
+                            <div class="dropdown-column">
+                                <a href="../PHU_KIEN/phukien.html"><h4>Phụ kiện</h4></a>
+                            </div>
+                        </div>
+                    </li>
+                    <li><a href="../GIOI_THIEU/gioithieu.html">Giới thiệu</a></li>
+                    <li><a href="../LIEN_HE/lienhe.html">Liên hệ</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <div class="search-box">
+                    <input type="text" placeholder="Tìm kiếm sản phẩm...">
+                    <button><i class="fas fa-search"></i></button>
+                </div>
+                <div class="cart-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </div>
+                <div class="user-actions">
+                    <a href="#"><i class="fas fa-user"></i></a>
+                </div>
+            </div>
+        </div>
+    </header>
+    <section class="product-section">
+                <div class="league-tabs">
+                    <button class="tab-btn active" data-brand="all">Tất cả</button>
+                    <button class="tab-btn" data-brand="nike">Nike</button>
+                    <button class="tab-btn" data-brand="adidas">Adidas</button>
+                    <button class="tab-btn" data-brand="puma">Puma</button>
+                    <button class="tab-btn" data-brand="gkvn">GKVN</button>
+                    
+                </div>
+    </section>
+
+
+  <main class="container">
+    <!-- Sidebar bộ lọc -->
+    <aside class="filter-sidebar">
+      <h3>Bộ lọc sản phẩm</h3>
+
+      <div class="filter-group">
+        <strong>Giá</strong><br>
+        <label><input type="checkbox" name="price" value="duoi500"> Dưới 500.000₫</label>
+        <label><input type="checkbox" name="price" value="500-600"> 500.000₫ - 600.000₫</label>
+        <label><input type="checkbox" name="price" value="tren600"> Trên 600.000₫</label>
+      </div>
+
+      <div class="filter-group">
+                    <strong>Kích cỡ</strong>
+                    <div class="size-options">
+                        <button class="size-btn">7</button>
+                        <button class="size-btn">8</button>
+                        <button class="size-btn">9</button>
+                        <button class="size-btn">10</button>
+
+
+                    </div>
+                </div>
+
+      <div class="filter-group">
+        <strong>Thương hiệu</strong><br>
+        <label><input type="checkbox" name="brand" value="nike"> Nike</label>
+        <label><input type="checkbox" name="brand" value="adidas"> Adidas</label>
+        <label><input type="checkbox" name="brand" value="puma"> Puma</label>
+        <label><input type="checkbox" name="brand" value="gkvn"> GKVN</label>
+    
+      </div>
+
+      
+    </aside>
+
+    <!-- Danh sách sản phẩm -->
+    <div class="product-grid">
+
+    <!-- Sản phẩm 1 -->
+    <div class="product-card " 
+         data-price="599000"  
+         data-brand="nike" 
+         data-size="9,10">
+        <div class="image-holder">
+            <img src="" alt="Găng Tay Nike Vapor Dynamic">
+        </div>
+        <h3>Găng Tay Nike Vapor Dynamic</h3>
+        <p class="price">599,000₫</p>
+        <button class="add-to-cart">Thêm vào giỏ</button>
+    </div>
+
+    <!-- Sản phẩm 2 -->
+    <div class="product-card " 
+         data-price="699000"  
+         data-brand="adidas" 
+         data-size="8">
+        <div class="image-holder">
+            <img src="" alt="Găng Tay Adidas COPA GL LEAGUE CORAL ">
+        </div>
+        <h3>Găng Tay Adidas COPA GL LEAGUE CORAL</h3>
+        <p class="price">699,000₫</p>
+        <button class="add-to-cart">Thêm vào giỏ</button>
+    </div>
+
+    <!-- Sản phẩm 3 -->
+    <div class="product-card " 
+         data-price="899000"  
+         data-brand="gkvn" 
+         data-size="10">
+        <div class="image-holder">
+            <img src="" alt="Găng tay thủ môn GKVN Trường Sơn ">
+        </div>
+        <h3>Găng tay thủ môn GKVN Trường Sơn</h3>
+        <p class="price">899,000₫</p>
+        <button class="add-to-cart">Thêm vào giỏ</button>
+    </div>
+
+    <!-- Sản phẩm 4 -->
+    <div class="product-card " 
+         data-price="759000"  
+         data-brand="puma" 
+         data-size=" 9">
+        <div class="image-holder">
+            <img src="" alt="Găng Tay PUMA Future Ultimate NC Hot Pursuit - Heat Fire/Ravish">
+        </div>
+        <h3>Găng Tay PUMA Future Ultimate NC Hot Pursuit</h3>
+        <p class="price">759,000₫</p>
+        <button class="add-to-cart">Thêm vào giỏ</button>
+    </div>
+
+    <div class="product-card " 
+         data-price="699000"  
+         data-brand="gkvn" 
+         data-size="8,10">
+        <div class="image-holder">
+            <img src="" alt="Găng Tay Thủ Môn GKVN Giáp Thìn ">
+        </div>
+        <h3>Găng Tay Thủ Môn GKVN Giáp Thìn</h3>
+        <p class="price">699,000₫</p>
+        <button class="add-to-cart">Thêm vào giỏ</button>
+    </div>    
+</div>
+</main>
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>VỀ CHÚNG TÔI</h3>
+                <p>Chuyên cung cấp đồng phục bóng đá chính hãng, chất lượng cao với giá cả hợp lý.</p>
+            </div>
+            <div class="footer-section">
+                <h3>LIÊN KẾT NHANH</h3>
+                <ul>
+                    <li><a href="../TRANG_CHU/index.html">Trang chủ</a></li>
+                    <li><a href="../XEM_TAT_CA/xemtatca.html" class="active">Sản phẩm</a></li>
+                    <li><a href="../GIOI_THIEU/gioithieu.html">Giới thiệu</a></li>
+                    <li><a href="../LIEN_HE/lienhe.html">Liên hệ</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>HỖ TRỢ</h3>
+                <ul>
+                    <li><a href="../LIEN_HE/lienhe.html#return-policy-section ">Chính sách đổi trả</a></li>
+                    <li><a href="../LIEN_HE/lienhe.html#shopping-guide-section">Hướng dẫn mua hàng</a></li>
+                    <li><a href="../LIEN_HE/lienhe.html#faq-section">Câu hỏi thường gặp</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 FOOTBALLSTORE. All Rights Reserved.</p>
+        </div>
+    </footer>
+    <script src="gloves.js"></script>
+</body>
+</html>
