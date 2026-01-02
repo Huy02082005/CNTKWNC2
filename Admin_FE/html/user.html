@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quản lý người dùng - Admin</title>
+  <title>Quản lý khách hàng - Admin</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/user.css">
@@ -19,7 +19,7 @@
     <div class="sidebar-menu">
       <ul>
         <li><a href="dashboard.html"><i class="fas fa-home"></i> <span>Dashboard</span></a></li>
-        <li class="active"><a href="user.html"><i class="fas fa-users"></i> <span>Quản lý người dùng</span></a></li>
+        <li class="active"><a href="user.html"><i class="fas fa-users"></i> <span>Quản lý khách hàng</span></a></li>
         <li><a href="orders.html"><i class="fas fa-shopping-cart"></i> <span>Đơn hàng</span></a></li>
         <li><a href="products.html"><i class="fas fa-box"></i> <span>Sản phẩm</span></a></li>
         <li><a href="admin.html"><i class="fas fa-user-shield"></i> <span>Quản lý admin</span></a></li>
@@ -36,9 +36,6 @@
       <div class="user-actions">
         <button class="btn btn-primary" onclick="showAddUserModal()">
           <i class="fas fa-plus"></i> Thêm khách hàng
-        </button>
-        <button class="btn btn-outline" onclick="exportUsers()">
-          <i class="fas fa-download"></i> Export
         </button>
       </div>
     </div>
@@ -172,25 +169,13 @@
     let currentPage = 1;
     const usersPerPage = 10;
 
-    console.log("🚀 user.html script loaded!");
-
     // Kiểm tra đăng nhập
     document.addEventListener('DOMContentLoaded', function() {
-      const logged = localStorage.getItem("logged");
-      
-      if (logged !== "true") {
-        alert("Bạn không có quyền truy cập!");
-        window.location.href = "/login.html";
-        return;
-      }
-      
       loadUsers();
     });
 
     async function loadUsers() {
-      try {
-        console.log("🔄 Đang tải danh sách khách hàng...");
-        
+      try {    
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         
@@ -199,9 +184,7 @@
         });
         
         clearTimeout(timeoutId);
-        
-        console.log("📊 Response status:", response.status);
-        
+
         if (!response.ok) {
           const errorText = await response.text();
           console.error("❌ Response error:", errorText);
@@ -268,8 +251,6 @@
                 alt="Avatar" class="user-avatar">
             <div>
               <strong>${user.FullName || 'Chưa có tên'}</strong>
-              <br>
-              <small style="color: #666;">ID: ${user.CustomerID}</small>
             </div>
           </div>
         </td>
@@ -322,17 +303,6 @@
           deleteUser(parseInt(userId));
         }
       });
-      
-      // Kiểm tra đăng nhập và load users
-      const logged = localStorage.getItem("logged");
-      
-      if (logged !== "true") {
-        alert("Bạn không có quyền truy cập!");
-        window.location.href = "/login.html";
-        return;
-      }
-      
-      loadUsers();
     });
 
     // Lọc khách hàng - ĐÃ SỬA
@@ -565,13 +535,8 @@
       }
     }
 
-    function exportUsers() {
-      alert('Chức năng export sẽ được phát triển sau!');
-    }
-
     function logout() {
-      localStorage.removeItem("logged");
-      localStorage.removeItem("username");
+      localStorage.clear();
       window.location.href = "/login.html";
     }
 

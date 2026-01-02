@@ -5,7 +5,7 @@ const productController = require('../controllers/productController');
 router.get('/', productController.getAllProducts);
 router.get('/categories', productController.getAllCategories);
 router.get('/brands', productController.getAllBrands);
-router.get('/clubs', productController.getAllClubs);
+router.get('/leagues', productController.getAllLeagues);
 router.get('/sizes', productController.getAllSizes);
 router.get('/:id', productController.getProductById);
 router.post('/', productController.createProduct);

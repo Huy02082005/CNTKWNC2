@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Quần Áo Bóng Đá - Đồng Phục Câu Lạc Bộ</title>
+    <link rel="stylesheet" href="clothes.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <h1>FOOTBALL<span>STORE</span></h1>
+                <p>Đồng phục bóng đá chính hãng</p>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="/User_FE/Home/home.html">Trang chủ</a></li>
+                    <li class="dropdown">
+                        <a href="/User_FE/See_All/see_all.html">Sản phẩm <i class="fas fa-chevron-down"></i></a>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-column">
+                                <a href="#"><h4>Quần áo</h4></a>
+                                <ul>
+                                    <li><a href="../QUAN_AO/quanao.html?league=epl">Premier League</a></li>
+                                    <li><a href="../QUAN_AO/quanao.html?league=laliga">La Liga</a></li>
+                                    <li><a href="../QUAN_AO/quanao.html?league=seriea">Serie A</a></li>
+                                    <li><a href="../QUAN_AO/quanao.html?league=bundesliga">Bundesliga</a></li>
+                                    <li><a href="../QUAN_AO/quanao.html?league=ligue1">Ligue 1</a></li>
+                                    <li><a href="../QUAN_AO/quanao.html?league=v-league">V-League</a></li>
+                                    <li><a href="../QUAN_AO/quanao.html?league=đtqg">ĐTQG</a></li>
+                                </ul>
+                            </div>
+                            <div class="dropdown-column">
+                                <a href="../GIAY/giay.html"><h4>Giày</h4></a>
+                                <ul>
+                                    <li><a href="../GIAY/giay.html?brand=nike">Nike</a></li>
+                                    <li><a href="../GIAY/giay.html?brand=adidas">Adidas</a></li>
+                                    <li><a href="../GIAY/giay.html?brand=puma">Puma</a></li>
+                                    <li><a href="../GIAY/giay.html?brand=mizuno">Mizuno</a></li>
+                                    <li><a href="../GIAY/giay.html?brand=newbalance">New Balance</a></li>
+                                </ul>
+                            </div>
+                            <div class="dropdown-column">
+                               <a href="../GANG_TAY/gangtay.html"><h4>Găng tay thủ môn</h4></a>
+                                <ul>
+                                    <li><a href="../GANG_TAY/gangtay.html?brand=nike">Nike</a></li>
+                                    <li><a href="../GANG_TAY/gangtay.html?brand=adidas">Adidas</a></li>
+                                    <li><a href="../GANG_TAY/gangtay.html?brand=puma">Puma</a></li>
+                                    <li><a href="../GANG_TAY/gangtay.html?brand=gkvn">GKVN</a></li>
+                                    
+                                </ul>
+                            </div>
+                            <div class="dropdown-column">
+                                <a href="../PHU_KIEN/phukien.html"><h4>Phụ kiện</h4></a>
+                            </div>
+                        </div>
+                    </li>
+                    <li><a href="../GIOI_THIEU/gioithieu.html">Giới thiệu</a></li>
+                    <li><a href="../LIEN_HE/lienhe.html">Liên hệ</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <div class="search-box">
+                    <input type="text" placeholder="Tìm kiếm sản phẩm...">
+                    <button><i class="fas fa-search"></i></button>
+                </div>
+                <div class="cart-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </div>
+                <div class="user-actions">
+                    <a href="#"><i class="fas fa-user"></i></a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <section class="product-section">
+        <div class="league-tabs">
+            <button class="tab-btn active" data-league="all">Tất cả</button>
+            <button class="tab-btn" data-league="epl">Premier League</button>
+            <button class="tab-btn" data-league="laliga">La Liga</button>
+            <button class="tab-btn" data-league="seriea">Serie A</button>
+            <button class="tab-btn" data-league="bundesliga">Bundesliga</button>
+            <button class="tab-btn" data-league="ligue1">Ligue 1</button>
+            <button class="tab-btn" data-league="v-league">V-League</button>
+            <button class="tab-btn" data-league="đtqg">ĐTQG</button>
+        </div>
+    </section>
+
+    <main class="container">
+        <!-- Sidebar bộ lọc (lấy từ see_all.html) -->
+        <aside class="filter-sidebar">
+            <h3>Bộ lọc sản phẩm</h3>
+            <div class="filter-group">
+                <strong>Giá</strong><br>
+                <label><input type="checkbox" name="price" value="duoi500"> Dưới 500.000₫</label>
+                <label><input type="checkbox" name="price" value="500-1000"> 500.000₫ - 1.000.000₫</label>
+                <label><input type="checkbox" name="price" value="tren1000"> Trên 1.000.000₫</label>
+            </div>
+
+            <div class="filter-group">
+                <strong>Loại sản phẩm</strong><br>
+                <label><input type="checkbox" name="category" value="ao-bong-da"> Áo bóng đá</label>
+                <label><input type="checkbox" name="category" value="ao-khoac"> Áo khoác</label>
+            </div>
+
+            <div class="filter-group">
+                <strong>Thương hiệu</strong><br>
+                <label><input type="checkbox" name="brand" value="nike"> Nike</label>
+                <label><input type="checkbox" name="brand" value="adidas"> Adidas</label>
+                <label><input type="checkbox" name="brand" value="puma"> Puma</label>
+                <label><input type="checkbox" name="brand" value="mizuno"> Mizuno</label>
+                <label><input type="checkbox" name="brand" value="new-balance"> New Balance</label>
+            </div>
+
+            <div class="filter-group">
+                <strong>Giải đấu / CLB</strong><br>
+                <label><input type="checkbox" name="club" value="premier-league"> Premier League</label>
+                <label><input type="checkbox" name="club" value="laliga"> La Liga</label>
+                <label><input type="checkbox" name="club" value="seriea"> Serie A</label>
+                <label><input type="checkbox" name="club" value="bundesliga"> Bundesliga</label>
+                <label><input type="checkbox" name="club" value="ligue1"> Ligue 1</label>
+                <label><input type="checkbox" name="club" value="v-league"> V-League</label>
+                <label><input type="checkbox" name="club" value="doi-tuyen-quoc-gia"> Đội tuyển quốc gia</label>
+            </div>
+
+            <div class="filter-group">
+                <strong>Trạng thái</strong><br>
+                <label><input type="checkbox" name="status" value="active" checked> Còn hàng</label>
+                <label><input type="checkbox" name="status" value="onsale"> Đang giảm giá</label>
+            </div>
+
+            <div class="filter-group">
+                <strong>Kích cỡ</strong><br>
+                <label><input type="checkbox" name="size" value="s"> S</label>
+                <label><input type="checkbox" name="size" value="m"> M</label>
+                <label><input type="checkbox" name="size" value="l"> L</label>
+                <label><input type="checkbox" name="size" value="xl"> XL</label>
+                <label><input type="checkbox" name="size" value="xxl"> XXL</label>
+            </div>
+
+            <button id="reset-filter" class="btn-apply">Xóa bộ lọc</button>
+            <button id="apply-filter" class="btn-apply">Áp dụng</button>
+        </aside>
+
+        <!-- Danh sách sản phẩm sẽ được tải từ database -->
+        <div class="product-grid" id="product-grid">
+            <!-- Sản phẩm sẽ được thêm bằng JavaScript từ database -->
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>VỀ CHÚNG TÔI</h3>
+                <p>Chuyên cung cấp đồng phục bóng đá chính hãng, chất lượng cao với giá cả hợp lý.</p>
+            </div>
+            <div class="footer-section">
+                <h3>LIÊN KẾT NHANH</h3>
+                <ul>
+                    <li><a href="../TRANG_CHU/index.html">Trang chủ</a></li>
+                    <li><a href="../XEM_TAT_CA/xemtatca.html" class="active">Sản phẩm</a></li>
+                    <li><a href="../GIOI_THIEU/gioithieu.html">Giới thiệu</a></li>
+                    <li><a href="../LIEN_HE/lienhe.html">Liên hệ</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>HỖ TRỢ</h3>
+                <ul>
+                    <li><a href="../LIEN_HE/lienhe.html#return-policy-section ">Chính sách đổi trả</a></li>
+                    <li><a href="../LIEN_HE/lienhe.html#shopping-guide-section">Hướng dẫn mua hàng</a></li>
+                    <li><a href="../LIEN_HE/lienhe.html#faq-section">Câu hỏi thường gặp</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 FOOTBALLSTORE. All Rights Reserved.</p>
+        </div>
+    </footer>
+    <script src="clothes.js"></script>
+    <script src="product-loader.js"></script>
+</body>
+</html>

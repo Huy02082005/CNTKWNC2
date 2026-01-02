@@ -19,7 +19,7 @@
     <div class="sidebar-menu">
       <ul>
         <li><a href="dashboard.html"><i class="fas fa-home"></i> <span>Dashboard</span></a></li>
-        <li><a href="user.html"><i class="fas fa-users"></i> <span>Quản lý người dùng</span></a></li>
+        <li><a href="user.html"><i class="fas fa-users"></i> <span>Quản lý khách hàng</span></a></li>
         <li><a href="orders.html"><i class="fas fa-shopping-cart"></i> <span>Đơn hàng</span></a></li>
         <li class="active"><a href="#"><i class="fas fa-box"></i> <span>Sản phẩm</span></a></li>
         <li><a href="admin.html"><i class="fas fa-user-shield"></i> <span>Quản lý admin</span></a></li>
@@ -77,8 +77,8 @@
       <table>
         <thead>
             <tr>
-            <th>Hình</th>
             <th>Tên sản phẩm</th>
+            <th>Mô tả</th>
             <th>Danh mục</th>
             <th>Thương hiệu</th>
             <th>Giá nhập</th>
@@ -206,14 +206,6 @@
             <div class="form-group">
               <label for="playerName">Tên cầu thủ</label>
               <input type="text" id="playerName" class="form-control">
-            </div>
-            
-            <div class="form-group">
-              <label for="isHomeKit">Loại áo</label>
-              <select id="isHomeKit" class="form-control">
-                <option value="1">Áo sân nhà</option>
-                <option value="0">Áo sân khách</option>
-              </select>
             </div>
           </div>
           
@@ -348,7 +340,7 @@
 
     async function loadLeagues() {
   try {
-    const response = await fetch('/product/leagues'); // Tạo API mới hoặc sửa API clubs
+    const response = await fetch('/product/leagues');
     if (!response.ok) throw new Error('Lỗi API');
     leagues = await response.json();
   } catch (error) {
@@ -740,7 +732,6 @@ async function loadProducts() {
       return text.substring(0, maxLength) + '...';
     }
 
-    // Hiển thị dữ liệu mẫu nếu API lỗi
     function showFallbackProducts() {
       products = [
         {
@@ -797,111 +788,104 @@ async function loadProducts() {
       document.getElementById('productModal').style.display = 'flex';
     }
 
-    // Mở modal sửa sản phẩm
-    // SỬA HÀM editProduct
-function editProduct(productId) {
-  const product = products.find(p => p.ProductID === productId);
-  if (!product) {
-    alert('Không tìm thấy sản phẩm');
-    return;
-  }
-  
-  editingProductId = productId;
-  document.getElementById('modalTitle').textContent = 'Sửa sản phẩm';
-  document.getElementById('productId').value = product.ProductID;
-  document.getElementById('productName').value = product.ProductName;
-  document.getElementById('productDescription').value = product.Description || '';
-  document.getElementById('categoryId').value = product.CategoryID || '';
-  document.getElementById('brandId').value = product.BrandID || '';
-  document.getElementById('leagueId').value = product.LeagueID || '1'; // THAY ClubID bằng LeagueID
-  document.getElementById('sizeId').value = product.SizeID || '';
-  document.getElementById('importPrice').value = product.ImportPrice || '';
-  document.getElementById('sellingPrice').value = product.SellingPrice || '';
-  document.getElementById('discount').value = product.Discount || 0;
-  document.getElementById('stockQuantity').value = product.StockQuantity || 0;
-  document.getElementById('unit').value = product.Unit || 'Cái';
-  document.getElementById('season').value = product.Season || '';
-  document.getElementById('playerName').value = product.PlayerName || '';
-  document.getElementById('isHomeKit').value = product.IsHomeKit ? '1' : '0';
-  document.getElementById('imageURL').value = product.ImageURL || '';
-  document.getElementById('status').value = product.Status || 'active';
-  document.getElementById('productModal').style.display = 'flex';
-}
+    function editProduct(productId) {
+      const product = products.find(p => p.ProductID === productId);
+      if (!product) {
+        alert('Không tìm thấy sản phẩm');
+        return;
+      }
+      
+      editingProductId = productId;
+      document.getElementById('modalTitle').textContent = 'Sửa sản phẩm';
+      document.getElementById('productId').value = product.ProductID;
+      document.getElementById('productName').value = product.ProductName;
+      document.getElementById('productDescription').value = product.Description || '';
+      document.getElementById('categoryId').value = product.CategoryID || '';
+      document.getElementById('brandId').value = product.BrandID || '';
+      document.getElementById('leagueId').value = product.LeagueID || '1'; // CHỈNH LẠI
+      document.getElementById('sizeId').value = product.SizeID || '';
+      document.getElementById('importPrice').value = product.ImportPrice || '';
+      document.getElementById('sellingPrice').value = product.SellingPrice || '';
+      document.getElementById('discount').value = product.Discount || 0;
+      document.getElementById('stockQuantity').value = product.StockQuantity || 0;
+      document.getElementById('unit').value = product.Unit || 'Cái';
+      document.getElementById('season').value = product.Season || '';
+      document.getElementById('playerName').value = product.PlayerName || '';
+      document.getElementById('imageURL').value = product.ImageURL || '';
+      document.getElementById('status').value = product.Status || 'active';
+      document.getElementById('productModal').style.display = 'flex';
+    }
 
     // Đóng modal
     function closeModal() {
       document.getElementById('productModal').style.display = 'none';
     }
 
-    // Lưu sản phẩm (thêm hoặc sửa)
     // SỬA HÀM saveProduct
-async function saveProduct() {
-  const form = document.getElementById('productForm');
-  if (!form.checkValidity()) {
-    alert('Vui lòng điền đầy đủ thông tin bắt buộc');
-    return;
-  }
-  
-  // Tính toán giá bán sau giảm giá
-  const sellingPrice = parseFloat(document.getElementById('sellingPrice').value);
-  const discount = parseFloat(document.getElementById('discount').value) || 0;
-  const finalPrice = sellingPrice * (1 - discount / 100);
-  
-  const productData = {
-    ProductName: document.getElementById('productName').value,
-    Description: document.getElementById('productDescription').value,
-    CategoryID: parseInt(document.getElementById('categoryId').value),
-    BrandID: parseInt(document.getElementById('brandId').value),
-    ImageURL: document.getElementById('imageURL').value,
-    ImportPrice: parseFloat(document.getElementById('importPrice').value),
-    SellingPrice: sellingPrice,
-    Discount: discount,
-    FinalPrice: finalPrice,
-    StockQuantity: parseInt(document.getElementById('stockQuantity').value),
-    Unit: document.getElementById('unit').value,
-    LeagueID: document.getElementById('leagueId').value ? parseInt(document.getElementById('leagueId').value) : 1, // THAY ClubID bằng LeagueID
-    SizeID: document.getElementById('sizeId').value ? parseInt(document.getElementById('sizeId').value) : null,
-    Season: document.getElementById('season').value,
-    IsHomeKit: document.getElementById('isHomeKit').value === '1',
-    PlayerName: document.getElementById('playerName').value,
-    Status: document.getElementById('status').value
-  };
-  
-  try {
-    let response;
-    if (editingProductId) {
-      // Cập nhật sản phẩm
-      response = await fetch(`/product/${editingProductId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(productData)
-      });
-    } else {
-      // Thêm sản phẩm mới
-      response = await fetch('/product', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(productData)
-      });
+    async function saveProduct() {
+      const form = document.getElementById('productForm');
+      if (!form.checkValidity()) {
+        alert('Vui lòng điền đầy đủ thông tin bắt buộc');
+        return;
+      }
+      
+      // Tính toán giá bán sau giảm giá
+      const sellingPrice = parseFloat(document.getElementById('sellingPrice').value);
+      const discount = parseFloat(document.getElementById('discount').value) || 0;
+      const finalPrice = sellingPrice * (1 - discount / 100);
+      
+      const productData = {
+        ProductName: document.getElementById('productName').value,
+        Description: document.getElementById('productDescription').value,
+        CategoryID: parseInt(document.getElementById('categoryId').value),
+        BrandID: parseInt(document.getElementById('brandId').value),
+        ImageURL: document.getElementById('imageURL').value,
+        ImportPrice: parseFloat(document.getElementById('importPrice').value),
+        SellingPrice: sellingPrice,
+        Discount: discount,
+        FinalPrice: finalPrice,
+        StockQuantity: parseInt(document.getElementById('stockQuantity').value),
+        Unit: document.getElementById('unit').value,
+        LeagueID: document.getElementById('leagueId').value ? parseInt(document.getElementById('leagueId').value) : 1,
+        SizeID: document.getElementById('sizeId').value ? parseInt(document.getElementById('sizeId').value) : null,
+        Season: document.getElementById('season').value,
+        PlayerName: document.getElementById('playerName').value,
+        Status: document.getElementById('status').value
+      };
+      
+      try {
+        let response;
+        if (editingProductId) {
+          response = await fetch(`/product/${editingProductId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(productData)
+          });
+        } else {
+          response = await fetch('/product', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(productData)
+          });
+        }
+        
+        if (!response.ok) throw new Error('Lỗi khi lưu sản phẩm');
+        
+        const result = await response.json();
+        alert(result.message || 'Lưu sản phẩm thành công');
+        
+        closeModal();
+        loadProducts();
+        
+      } catch (error) {
+        console.error('❌ Lỗi khi lưu sản phẩm:', error);
+        alert('Lỗi khi lưu sản phẩm: ' + error.message);
+      }
     }
-    
-    if (!response.ok) throw new Error('Lỗi khi lưu sản phẩm');
-    
-    const result = await response.json();
-    alert(result.message || 'Lưu sản phẩm thành công');
-    
-    closeModal();
-    loadProducts(); // Tải lại danh sách sản phẩm
-    
-  } catch (error) {
-    console.error('❌ Lỗi khi lưu sản phẩm:', error);
-    alert('Lỗi khi lưu sản phẩm: ' + error.message);
-  }
-}
 
     // Xóa sản phẩm
     async function deleteProduct(productId) {

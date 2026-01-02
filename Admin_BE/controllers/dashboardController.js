@@ -1,14 +1,10 @@
-// controllers/dashboardController.js - GIỮ NGUYÊN BẢN GỐC
 const sql = require("mssql");
 const config = require("../config/db");
 
 const dashboardController = {
-  // Lấy thống kê tổng quan
   getDashboardStats: async (req, res) => {
     try {
       const pool = await sql.connect(config);
-      
-      // Thống kê tổng quan
       const statsResult = await pool.request().query(`
         SELECT 
           (SELECT COUNT(*) FROM Product) as TotalProducts,
@@ -45,13 +41,24 @@ const dashboardController = {
       `);
 
       res.json({
-        stats: statsResult.recordset[0],
+        success: true,
+        data: {
+          totalProducts: statsResult.recordset[0].TotalProducts,
+          totalOrders: statsResult.recordset[0].TotalOrders,
+          totalCustomers: statsResult.recordset[0].TotalCustomers,
+          totalRevenue: statsResult.recordset[0].TotalRevenue,
+          pendingOrders: statsResult.recordset[0].PendingOrders,
+          outOfStockProducts: statsResult.recordset[0].OutOfStockProducts
+        },
         monthlyRevenue: revenueResult.recordset,
         topProducts: topProductsResult.recordset
       });
     } catch (err) {
       console.error(err);
-      res.status(500).json({ message: "Lỗi server" });
+      res.status(500).json({ 
+        success: false, 
+        message: "Lỗi server khi lấy thống kê dashboard" 
+      });
     }
   }
 };

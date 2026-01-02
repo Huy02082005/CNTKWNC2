@@ -25,50 +25,6 @@ app.use('/api/images', require('./routes/imageRoutes'));
 app.use('/user/js', express.static(path.join(__dirname, '../User_FE')));
 app.use('/api/products', require('./routes/userProductRoutes'));
 
-app.get('/api/test-simple', (req, res) => {
-    console.log('✅ /api/test-simple called');
-    res.json({
-        success: true,
-        message: 'Simple API test endpoint is working',
-        timestamp: new Date().toISOString()
-    });
-});
-
-app.get('/api/products/test', async (req, res) => {
-    console.log('🧪 /api/products/test called');
-    
-    try {
-        // Kiểm tra database connection
-        if (!req.app.locals.db) {
-            return res.json({
-                success: false,
-                message: 'Database not connected',
-                dbStatus: 'disconnected'
-            });
-        }
-        
-        // Test query đơn giản
-        const result = await req.app.locals.db.request().query('SELECT TOP 3 ProductID, ProductName FROM Product');
-        
-        res.json({
-            success: true,
-            message: 'Products API is working',
-            dbStatus: 'connected',
-            testData: result.recordset,
-            count: result.recordset.length
-        });
-        
-    } catch (error) {
-        console.error('Test error:', error);
-        res.json({
-            success: false,
-            message: 'Test failed',
-            error: error.message,
-            dbStatus: 'error'
-        });
-    }
-});
-
 // Route để xem tất cả routes đã đăng ký
 app.get('/api/routes', (req, res) => {
     const routes = [];
@@ -97,49 +53,6 @@ app.get('/api/routes', (req, res) => {
         totalRoutes: routes.length,
         routes: routes
     });
-});
-
-// Thêm endpoint để debug database
-app.get('/api/debug/products', async (req, res) => {
-    try {
-        if (!req.app.locals.db) {
-            return res.json({
-                success: false,
-                message: 'Database not connected'
-            });
-        }
-        
-        // Lấy tổng số sản phẩm
-        const countResult = await req.app.locals.db.request().query('SELECT COUNT(*) as total FROM Product');
-        const totalProducts = countResult.recordset[0].total;
-        
-        // Lấy 50 sản phẩm đầu tiên
-        const result = await req.app.locals.db.request().query(`
-            SELECT TOP 50 
-                ProductID, 
-                ProductName, 
-                Status,
-                CategoryID,
-                BrandID
-            FROM Product 
-            ORDER BY ProductID DESC
-        `);
-        
-        res.json({
-            success: true,
-            totalProducts: totalProducts,
-            sampledProducts: result.recordset.length,
-            products: result.recordset,
-            message: `Database có ${totalProducts} sản phẩm`
-        });
-        
-    } catch (error) {
-        console.error('Debug error:', error);
-        res.json({
-            success: false,
-            error: error.message
-        });
-    }
 });
 
 app.get('/home.html', (req, res) => {
@@ -215,6 +128,265 @@ app.use((req, res, next) => {
   }
 });
 
+app.get('/product-detail.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '../User_FE/html/product-detail.html'));
+});
+
+// Route cho CSS của product detail
+app.get('/product-detail.css', (req, res) => {
+    res.sendFile(path.join(__dirname, '../User_FE/css/product_detail.css'));
+});
+
+// Route cho JavaScript của product detail
+app.get('/product-detail.js', (req, res) => {
+    res.sendFile(path.join(__dirname, '../User_FE/js/product-detail/product_detail.js'));
+});
+
+// Route API để lấy chi tiết sản phẩm
+app.get('/api/product-detail/:id', async (req, res) => {
+    try {
+        const productId = req.params.id;
+        
+        if (!app.locals.db) {
+            return res.status(500).json({ error: 'Database not connected' });
+        }
+        
+        const request = app.locals.db.request();
+        
+        // Lấy thông tin sản phẩm chính
+        const productQuery = `
+            SELECT 
+                p.*, 
+                c.CategoryName, 
+                b.BrandName, 
+                l.LeagueName,
+                l.Country
+            FROM Product p
+            LEFT JOIN Category c ON p.CategoryID = c.CategoryID
+            LEFT JOIN Brand b ON p.BrandID = b.BrandID
+            LEFT JOIN League l ON p.LeagueID = l.LeagueID
+            WHERE p.ProductID = @productId AND p.Status = 'active'
+        `;
+        
+        const productResult = await request
+            .input('productId', productId)
+            .query(productQuery);
+        
+        if (!productResult.recordset || productResult.recordset.length === 0) {
+            return res.status(404).json({ error: 'Sản phẩm không tồn tại' });
+        }
+        
+        const product = productResult.recordset[0];
+        
+        // Lấy sizes có sẵn
+        const sizesQuery = `
+            SELECT 
+                ps.SizeID, 
+                ps.SizeName, 
+                ps.SizeType, 
+                ISNULL(psm.StockQuantity, 0) as StockQuantity
+            FROM ProductSizeMapping psm
+            JOIN ProductSize ps ON psm.SizeID = ps.SizeID
+            WHERE psm.ProductID = @productId 
+                AND psm.IsActive = 1 
+                AND psm.StockQuantity > 0
+            ORDER BY ps.SizeType, ps.SizeName
+        `;
+        
+        const sizesResult = await request
+            .input('productId', productId)
+            .query(sizesQuery);
+        
+        // Lấy sản phẩm liên quan
+        const relatedQuery = `
+            SELECT TOP 4 
+                p.ProductID, 
+                p.ProductName, 
+                p.ImageURL, 
+                p.SellingPrice, 
+                p.Discount,
+                p.StockQuantity
+            FROM Product p
+            WHERE (p.CategoryID = @categoryId OR p.LeagueID = @leagueId)
+                AND p.ProductID != @productId
+                AND p.Status = 'active'
+            ORDER BY NEWID()
+        `;
+        
+        const relatedResult = await request
+            .input('categoryId', product.CategoryID)
+            .input('leagueId', product.LeagueID)
+            .input('productId', productId)
+            .query(relatedQuery);
+        
+        // Tính giá sau giảm
+        const discountedPrice = product.Discount > 0 
+            ? product.SellingPrice - (product.SellingPrice * product.Discount / 100)
+            : product.SellingPrice;
+        
+        res.json({
+            success: true,
+            product: {
+                ...product,
+                discountedPrice: discountedPrice
+            },
+            sizes: sizesResult.recordset,
+            relatedProducts: relatedResult.recordset,
+            hasSizes: sizesResult.recordset.length > 0
+        });
+        
+    } catch (error) {
+        console.error('Error loading product detail:', error);
+        res.status(500).json({ 
+            error: 'Lỗi tải sản phẩm',
+            message: error.message 
+        });
+    }
+});
+
+// Route cho sản phẩm liên quan
+app.get('/api/related-products/:id', async (req, res) => {
+    try {
+        const productId = req.params.id;
+        
+        if (!app.locals.db) {
+            return res.status(500).json({ error: 'Database not connected' });
+        }
+        
+        const request = app.locals.db.request();
+        
+        // Lấy category và league của sản phẩm hiện tại
+        const infoQuery = `
+            SELECT CategoryID, LeagueID 
+            FROM Product 
+            WHERE ProductID = @productId
+        `;
+        
+        const infoResult = await request
+            .input('productId', productId)
+            .query(infoQuery);
+        
+        if (!infoResult.recordset || infoResult.recordset.length === 0) {
+            return res.json({ success: true, products: [] });
+        }
+        
+        const { CategoryID, LeagueID } = infoResult.recordset[0];
+        
+        // Lấy sản phẩm liên quan
+        const relatedQuery = `
+            SELECT TOP 8 
+                ProductID, 
+                ProductName, 
+                ImageURL, 
+                SellingPrice, 
+                Discount,
+                StockQuantity
+            FROM Product
+            WHERE (CategoryID = @categoryId OR LeagueID = @leagueId)
+                AND ProductID != @productId
+                AND Status = 'active'
+            ORDER BY NEWID()
+        `;
+        
+        const relatedResult = await request
+            .input('categoryId', CategoryID)
+            .input('leagueId', LeagueID)
+            .input('productId', productId)
+            .query(relatedQuery);
+        
+        res.json({
+            success: true,
+            products: relatedResult.recordset
+        });
+        
+    } catch (error) {
+        console.error('Error loading related products:', error);
+        res.status(500).json({ error: 'Lỗi tải sản phẩm liên quan' });
+    }
+});
+
+app.get('/product/:id', (req, res) => {
+    console.log(`📦 Product detail request: ${req.params.id}`);
+    
+    // Gửi file HTML product-detail.html
+    res.sendFile(path.join(__dirname, '../User_FE/html/product-detail.html'));
+});
+
+// API để lấy thông tin sản phẩm
+app.get('/api/products/:id', async (req, res) => {
+    try {
+        const productId = req.params.id;
+        console.log(`📦 API Request for product ID: ${productId}`);
+        
+        if (!app.locals.db) {
+            return res.status(500).json({ error: 'Database not connected' });
+        }
+        
+        const request = app.locals.db.request();
+        const query = `
+            SELECT p.*, c.CategoryName, b.BrandName, l.LeagueName
+            FROM Product p
+            LEFT JOIN Category c ON p.CategoryID = c.CategoryID
+            LEFT JOIN Brand b ON p.BrandID = b.BrandID
+            LEFT JOIN League l ON p.LeagueID = l.LeagueID
+            WHERE p.ProductID = @productId
+        `;
+        
+        const result = await request
+            .input('productId', productId)
+            .query(query);
+        
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+        
+        const product = result.recordset[0];
+        
+        res.json({
+            success: true,
+            product: mockProduct,
+            sizes: mockProduct.sizes,
+            relatedProducts: []
+        });
+        
+    } catch (error) {
+        console.error('Error fetching product:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.get('/debug/product-detail', (req, res) => {
+    const filePath = path.join(__dirname, '../User_FE/html/product-detail.html');
+    res.sendFile(filePath);
+});
+
+app.get('/debug/product-detail-content', (req, res) => {
+    const filePath = path.join(__dirname, '../User_FE/html/product-detail.html');
+    const fs = require('fs');
+    const content = fs.readFileSync(filePath, 'utf8');
+    
+    // Kiểm tra có meta CSP không
+    const hasMetaCSP = content.includes('Content-Security-Policy');
+    const hasDefaultSrcNone = content.includes("default-src 'none'");
+    
+    res.json({
+        file: 'product-detail.html',
+        hasMetaCSP: hasMetaCSP,
+        hasDefaultSrcNone: hasDefaultSrcNone,
+        metaTags: extractMetaTags(content),
+        fileSize: content.length
+    });
+});
+
+function extractMetaTags(html) {
+    const metaRegex = /<meta[^>]+>/g;
+    const matches = html.match(metaRegex) || [];
+    return matches.filter(meta => 
+        meta.includes('http-equiv') || 
+        meta.includes('Content-Security-Policy')
+    );
+}
+
 async function checkAndReconnectDB() {
   try {
     if (!app.locals.db || !app.locals.db.connected) {
@@ -256,10 +428,6 @@ app.get('/orders.html', (req, res) => {
 
 app.get('/products.html', (req, res) => {
     res.sendFile(path.join(__dirname, '../Admin_FE/html/products.html'));
-});
-
-app.get('/statistics.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Admin_FE/html/statistics.html'));
 });
 
 app.get('/settings.html', (req, res) => {

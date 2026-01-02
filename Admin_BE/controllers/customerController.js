@@ -5,8 +5,6 @@ const customerController = {
   getAllCustomers: async (req, res) => {
     try {     
       const pool = await sql.connect(config);
-      
-      // SỬA: Chỉ lấy các cột có trong bảng Customer
       const result = await pool.request().query(`
         SELECT 
           CustomerID,
@@ -31,7 +29,6 @@ const customerController = {
   getCustomerStats: async (req, res) => {
     try {
       const pool = await sql.connect(config);
-      // SỬA: Chỉ thống kê từ Customer, không có Role
       const result = await pool.request().query(`
         SELECT 
           COUNT(*) as TotalCustomers,
@@ -48,7 +45,7 @@ const customerController = {
 
   createCustomer: async (req, res) => {
     try {
-      const { FullName, Email, Phone, Address } = req.body; // Bỏ Role
+      const { FullName, Email, Phone, Address } = req.body;
 
       const pool = await sql.connect(config);
 
@@ -66,7 +63,7 @@ const customerController = {
         .input('Email', sql.NVarChar, Email)
         .input('Phone', sql.NVarChar, Phone)
         .input('Address', sql.NVarChar, Address)
-        .input('Password', sql.NVarChar, 'default123') // Mật khẩu mặc định
+        .input('Password', sql.NVarChar, '123456')
         .query(`
           INSERT INTO Customer (FullName, Email, Phone, Address, Password, RegisterDate)
           OUTPUT INSERTED.*
@@ -91,7 +88,7 @@ const customerController = {
   updateCustomer: async (req, res) => {
     try {
       const { id } = req.params;
-      const { FullName, Email, Phone, Address } = req.body; // Bỏ Role
+      const { FullName, Email, Phone, Address } = req.body;
 
       const pool = await sql.connect(config);
       

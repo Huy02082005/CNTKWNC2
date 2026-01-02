@@ -11,13 +11,26 @@ const productController = {
         req.app.locals.db = pool;
       }
 
+    // SỬA QUERY NÀY - BỎ JOIN ProductSize
     const result = await pool.request().query(`
-      SELECT p.*, c.CategoryName, b.BrandName, l.LeagueName, ps.SizeName
+      SELECT 
+        p.*, 
+        c.CategoryName, 
+        b.BrandName, 
+        l.LeagueName,
+        -- Thay thế bằng cách lấy size từ ProductSizeMapping
+        STUFF((
+          SELECT DISTINCT ', ' + ps.SizeName
+          FROM ProductSizeMapping psm
+          INNER JOIN ProductSize ps ON psm.SizeID = ps.SizeID
+          WHERE psm.ProductID = p.ProductID
+          AND psm.IsActive = 1
+          FOR XML PATH('')
+        ), 1, 2, '') AS SizeName
       FROM Product p
       LEFT JOIN Category c ON p.CategoryID = c.CategoryID
       LEFT JOIN Brand b ON p.BrandID = b.BrandID
       LEFT JOIN League l ON p.LeagueID = l.LeagueID
-      LEFT JOIN ProductSize ps ON p.SizeID = ps.SizeID
       ORDER BY p.ProductID DESC
     `);
     
@@ -48,12 +61,24 @@ const productController = {
       const result = await pool.request()
         .input('id', sql.Int, id)
         .query(`
-          SELECT p.*, c.CategoryName, b.BrandName, ct.ClubName, ps.SizeName
+          SELECT 
+            p.*, 
+            c.CategoryName, 
+            b.BrandName, 
+            l.LeagueName,
+            -- Thay thế bằng cách lấy size từ ProductSizeMapping
+            STUFF((
+              SELECT DISTINCT ', ' + ps.SizeName
+              FROM ProductSizeMapping psm
+              INNER JOIN ProductSize ps ON psm.SizeID = ps.SizeID
+              WHERE psm.ProductID = p.ProductID
+              AND psm.IsActive = 1
+              FOR XML PATH('')
+            ), 1, 2, '') AS SizeName
           FROM Product p
           LEFT JOIN Category c ON p.CategoryID = c.CategoryID
           LEFT JOIN Brand b ON p.BrandID = b.BrandID
           LEFT JOIN League l ON p.LeagueID = l.LeagueID
-          LEFT JOIN ProductSize ps ON p.SizeID = ps.SizeID
           WHERE p.ProductID = @id
         `);
       
@@ -73,7 +98,7 @@ const productController = {
       const {
         ProductName, Description, CategoryID, BrandID, ImageURL,
         ImportPrice, SellingPrice, Discount, StockQuantity, Unit,
-        LeagueID, SizeID, Season, IsHomeKit, PlayerName
+        LeagueID, SizeID, Season, PlayerName
       } = req.body;
 
       const pool = await sql.connect(config);
@@ -89,18 +114,17 @@ const productController = {
         .input('StockQuantity', sql.Int, StockQuantity || 0)
         .input('Unit', sql.NVarChar, Unit)
         .input('LeagueID', sql.Int, LeagueID || 1)
-        .input('SizeID', sql.Int, SizeID)
+        .input('SizeID', sql.Int, SizeID || null)  // Có thể để null
         .input('Season', sql.NVarChar, Season)
-        .input('IsHomeKit', sql.Bit, IsHomeKit || 1)
         .input('PlayerName', sql.NVarChar, PlayerName)
         .query(`
           INSERT INTO Product (ProductName, Description, CategoryID, BrandID, ImageURL, 
           ImportPrice, SellingPrice, Discount, StockQuantity, Unit, LeagueID, SizeID, 
-          Season, IsHomeKit, PlayerName, CreateDate, UpdateDate)
+          Season, PlayerName, CreateDate, UpdateDate)
           OUTPUT INSERTED.*
           VALUES (@ProductName, @Description, @CategoryID, @BrandID, @ImageURL,
           @ImportPrice, @SellingPrice, @Discount, @StockQuantity, @Unit, @LeagueID,
-          @SizeID, @Season, @IsHomeKit, @PlayerName, GETDATE(), GETDATE())
+          @SizeID, @Season, @PlayerName, GETDATE(), GETDATE())
         `);
 
       res.status(201).json({
@@ -119,7 +143,7 @@ const productController = {
       const {
         ProductName, Description, CategoryID, BrandID, ImageURL,
         ImportPrice, SellingPrice, Discount, StockQuantity, Unit,
-        LeagueID, SizeID, Season, IsHomeKit, PlayerName, Status
+        LeagueID, SizeID, Season, PlayerName, Status
       } = req.body;
 
       const pool = await sql.connect(config);
@@ -136,9 +160,8 @@ const productController = {
         .input('StockQuantity', sql.Int, StockQuantity)
         .input('Unit', sql.NVarChar, Unit)
         .input('LeagueID', sql.Int, LeagueID || 1)
-        .input('SizeID', sql.Int, SizeID)
+        .input('SizeID', sql.Int, SizeID || null)  // Có thể để null
         .input('Season', sql.NVarChar, Season)
-        .input('IsHomeKit', sql.Bit, IsHomeKit)
         .input('PlayerName', sql.NVarChar, PlayerName)
         .input('Status', sql.NVarChar, Status)
         .query(`
@@ -156,7 +179,6 @@ const productController = {
             LeagueID = @LeagueID,
             SizeID = @SizeID,
             Season = @Season,
-            IsHomeKit = @IsHomeKit,
             PlayerName = @PlayerName,
             Status = @Status,
             UpdateDate = GETDATE()
@@ -174,6 +196,7 @@ const productController = {
     }
   },
 
+  // Các hàm khác giữ nguyên...
   deleteProduct: async (req, res) => {
     try {
       const { id } = req.params;
@@ -227,26 +250,24 @@ const productController = {
     }
   },
 
-  getAllClubs: async (req, res) => {
+  getAllLeagues: async (req, res) => {
     try {
       const pool = await sql.connect(config);
-      const result = await pool.request().query('SELECT * FROM ClubTeam ORDER BY ClubName');
+      const result = await pool.request().query('SELECT * FROM League ORDER BY LeagueName');
       res.json(result.recordset);
     } catch (err) {
-      console.error('❌ Lỗi khi tải câu lạc bộ:', err);
+      console.error('❌ Lỗi khi tải giải đấu:', err);
       res.json([
-        { ClubID: 1, ClubName: "Arsenal" },
-        { ClubID: 2, ClubName: "Barcelona" },
-        { ClubID: 3, ClubName: "Bayern Munich" },
-        { ClubID: 4, ClubName: "Chelsea" },
-        { ClubID: 5, ClubName: "Inter Miami" },
-        { ClubID: 6, ClubName: "Juventus" },
-        { ClubID: 7, ClubName: "Liverpool" },
-        { ClubID: 8, ClubName: "Manchester City" },
-        { ClubID: 9, ClubName: "Manchester United" },
-        { ClubID: 10, ClubName: "Paris Saint-Germain" },
-        { ClubID: 11, ClubName: "Real Madrid" },
-        { ClubID: 12, ClubName: "Tottenham Hotspur" }
+        { LeagueID: 1, LeagueName: "Premier League" },
+        { LeagueID: 2, LeagueName: "FA Cup" },
+        { LeagueID: 3, LeagueName: "EFL Cup" },
+        { LeagueID: 4, LeagueName: "Community Shield" },
+        { LeagueID: 5, LeagueName: "Championship" },
+        { LeagueID: 6, LeagueName: "La Liga" },
+        { LeagueID: 7, LeagueName: "Copa del Rey" },
+        { LeagueID: 8, LeagueName: "Supercopa de España" },
+        { LeagueID: 9, LeagueName: "Serie A" },
+        { LeagueID: 10, LeagueName: "Coppa Italia" }
       ]);
     }
   },
@@ -264,13 +285,18 @@ const productController = {
         { SizeID: 3, SizeName: "L", SizeType: "Áo" },
         { SizeID: 4, SizeName: "XL", SizeType: "Áo" },
         { SizeID: 5, SizeName: "XXL", SizeType: "Áo" },
-        { SizeID: 6, SizeName: "38", SizeType: "Giày" },
-        { SizeID: 7, SizeName: "39", SizeType: "Giày" },
-        { SizeID: 8, SizeName: "40", SizeType: "Giày" },
-        { SizeID: 9, SizeName: "41", SizeType: "Giày" },
-        { SizeID: 10, SizeName: "42", SizeType: "Giày" },
-        { SizeID: 11, SizeName: "43", SizeType: "Giày" },
-        { SizeID: 12, SizeName: "44", SizeType: "Giày" }
+        { SizeID: 6, SizeName: "39", SizeType: "Giày" },
+        { SizeID: 7, SizeName: "40", SizeType: "Giày" },
+        { SizeID: 8, SizeName: "41", SizeType: "Giày" },
+        { SizeID: 9, SizeName: "42", SizeType: "Giày" },
+        { SizeID: 10, SizeName: "43", SizeType: "Giày" },
+        { SizeID: 11, SizeName: "44", SizeType: "Giày" },
+        { SizeID: 12, SizeName: "6", SizeType: "Găng tay" },
+        { SizeID: 13, SizeName: "7", SizeType: "Găng tay" },
+        { SizeID: 14, SizeName: "8", SizeType: "Găng tay" },
+        { SizeID: 15, SizeName: "9", SizeType: "Găng tay" },
+        { SizeID: 16, SizeName: "10", SizeType: "Găng tay" },
+        { SizeID: 17, SizeName: "11", SizeType: "Găng tay" }
       ]);
     }
   }

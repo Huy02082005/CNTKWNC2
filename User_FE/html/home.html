@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Quần Áo Bóng Đá - Đồng Phục Câu Lạc Bộ</title>
+    <link rel="stylesheet" href="/User_FE/css/home.css">
+    <link rel="stylesheet" href="/User_FE/css/product-display.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Header với Cart Module -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <h1>FOOTBALL<span>STORE</span></h1>
+                <p>Đồng phục bóng đá chính hãng</p>
+            </div>
+            
+            <!-- TRONG PHẦN NAV CỦA HEADER -->
+<nav class="main-nav">
+    <ul>
+        <li><a href="#" class="active">Trang chủ</a></li>
+        <li class="dropdown">
+            <a href="/User_FE/html/see_all.html">Sản phẩm <i class="fas fa-chevron-down"></i></a>
+            <div class="dropdown-menu">
+                <!-- CỘT 1: QUẦN ÁO -->
+                <div class="dropdown-column">
+                    <a href="/User_FE/Clothes/clothes.html"><h4>Quần áo</h4></a>
+                    <ul>
+                        <li><a href="../QUAN_AO/quanao.html?league=epl">Premier League</a></li>
+                        <li><a href="../QUAN_AO/quanao.html?league=laliga">La Liga</a></li>
+                        <li><a href="../QUAN_AO/quanao.html?league=seriea">Serie A</a></li>
+                        <li><a href="../QUAN_AO/quanao.html?league=bundesliga">Bundesliga</a></li>
+                        <li><a href="../QUAN_AO/quanao.html?league=ligue1">Ligue 1</a></li>
+                        <li><a href="../QUAN_AO/quanao.html?league=v-league">V-League</a></li>
+                        <li><a href="../QUAN_AO/quanao.html?league=đtqg">ĐTQG</a></li>
+                    </ul>
+                </div>
+                
+                <!-- CỘT 2: GIÀY -->
+                <div class="dropdown-column">
+                    <a href="/User_FE/Shoes/shoes.html"><h4>Giày</h4></a>
+                    <ul>
+                        <li><a href="../GIAY/giay.html?brand=nike">Nike</a></li>
+                        <li><a href="../GIAY/giay.html?brand=adidas">Adidas</a></li>
+                        <li><a href="../GIAY/giay.html?brand=puma">Puma</a></li>
+                        <li><a href="../GIAY/giay.html?brand=mizuno">Mizuno</a></li>
+                        <li><a href="../GIAY/giay.html?brand=newbalance">New Balance</a></li>
+                    </ul>
+                </div>
+                
+                <!-- CỘT 3: GĂNG TAY THỦ MÔN -->
+                <div class="dropdown-column">
+                    <a href="/User_FE/Gloves/gloves.html"><h4>Găng tay thủ môn</h4></a>
+                    <ul>
+                        <li><a href="../GANG_TAY/gangtay.html?brand=nike">Nike</a></li>
+                        <li><a href="../GANG_TAY/gangtay.html?brand=adidas">Adidas</a></li>
+                        <li><a href="../GANG_TAY/gangtay.html?brand=puma">Puma</a></li>
+                        <li><a href="../GANG_TAY/gangtay.html?brand=gkvn">Mizuno</a></li>
+                        <li><a href="../GANG_TAY/gangtay.html?brand=gkvn">New Balance</a></li>
+                    </ul>
+                </div>
+                
+                <!-- CỘT 4: PHỤ KIỆN -->
+                <div class="dropdown-column">
+                    <a href="/User_FE/Accessories/accessories.html"><h4>Phụ kiện</h4></a>
+                </div>
+            </div>
+        </li>
+        <li><a href="/User_FE/Introduction/introduction.html">Giới thiệu</a></li>
+        <li><a href="/User_FE/Contact/contact.html">Liên hệ</a></li>
+    </ul>
+</nav>
+            
+            <div class="header-actions">
+                <!-- Search Module có thể thêm sau -->
+                <div class="cart-module-container">
+                    <div class="cart-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count">0</span>
+                    </div>
+                    <!-- Cart dropdown sẽ được render bởi JS -->
+                    <div class="cart-dropdown"></div>
+                </div>
+                <div class="user-actions">
+                    <a href="#"><i class="fas fa-user"></i></a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Banner section -->
+    <section class="banner">
+        <div class="banner-content">
+            <h2>ĐỒNG PHỤC BÓNG ĐÁ</h2>
+            <p>Chính hãng - Giá tốt - Giao hàng toàn quốc</p>
+            <a href="#products" class="btn btn-primary">MUA NGAY</a>
+        </div>
+    </section>
+
+    <!-- Sản phẩm nổi bật với Product Card Module -->
+    <section id="products" class="products">
+        <h2 class="section-title text-center">SẢN PHẨM NỔI BẬT</h2>
+        
+        <!-- Container cho Product Card Module -->
+        <div class="product-grid-container">
+            <div class="product-grid" id="featured-products">
+                <!-- Sản phẩm sẽ được render bằng JS component -->
+            </div>
+            <div id="featured-products-pagination" class="pagination"></div>
+        </div>
+        
+        <div class="view-more text-center mt-4">
+            <button class="btn btn-primary btn-view-more">
+                Xem thêm sản phẩm <i class="fas fa-arrow-down"></i>
+            </button>
+        </div>
+    </section>
+
+    <!-- Đồng phục CLB -->
+    <section id="clubs" class="category-section">
+        <h2 class="section-title text-center">ĐỒNG PHỤC CÂU LẠC BỘ</h2>
+        <div class="category-grid" id="clubs-grid">
+            <!-- Sẽ được load bằng JS -->
+        </div>
+    </section>
+
+    <!-- Đồng phục ĐTQG -->
+    <section id="national" class="category-section">
+        <h2 class="section-title text-center">ĐỒNG PHỤC ĐỘI TUYỂN</h2>
+        <div class="category-grid" id="national-grid">
+            <!-- Sẽ được load bằng JS -->
+        </div>
+    </section>
+
+    <!-- Tư vấn -->
+    <section id="consulting" class="consulting">
+        <h2 class="section-title text-center">TƯ VẤN CHUYÊN NGHIỆP</h2>
+        <div class="consulting-container">
+            <div class="consulting-item">
+                <i class="fas fa-tshirt"></i>
+                <h3>Tư vấn đồng phục</h3>
+                <p>Chọn lựa đồng phục phù hợp với đội bóng của bạn</p>
+            </div>
+            <div class="consulting-item">
+                <i class="fas fa-shoe-prints"></i>
+                <h3>Tư vấn giày</h3>
+                <p>Giày bóng đá phù hợp với sân thi đấu và phong cách</p>
+            </div>
+            <div class="consulting-item">
+                <i class="fas fa-futbol"></i>
+                <h3>Tư vấn bóng</h3>
+                <p>Chọn bóng phù hợp với từng giải đấu và lứa tuổi</p>
+            </div>
+            <div class="consulting-item">
+                <i class="fas fa-tools"></i>
+                <h3>Tư vấn phụ kiện</h3>
+                <p>Phụ kiện bóng đá chính hãng, chất lượng cao</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Liên hệ -->
+    <section id="contact" class="contact">
+        <h2 class="section-title text-center">LIÊN HỆ VỚI CHÚNG TÔI</h2>
+        <div class="contact-container">
+            <div class="contact-info">
+                <h3>Thông tin liên hệ</h3>
+                <div class="contact-details">
+                    <p><i class="fas fa-map-marker-alt"></i> 55 Giải Phóng, Hai Bà Trưng, Hà Nội</p>
+                    <p><i class="fas fa-phone"></i> 0123 456 789</p>
+                    <p><i class="fas fa-envelope"></i> info@footballstore.com</p>
+                </div>
+                <div class="social-icons">
+                    <a href="https://www.facebook.com/seasar.store/about"><i class="fab fa-facebook"></i></a>
+                    <a href="https://www.instagram.com/seasarstore/"><i class="fab fa-instagram"></i></a>
+                    <a href="https://shopee.vn/seasarstore11"><i class="fas fa-shopping-bag"></i></a>
+                </div>
+            </div>
+            <div class="contact-form">
+                <form id="contact-form">
+                    <div class="form-group">
+                        <input type="text" placeholder="Họ và tên" required class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <input type="email" placeholder="Email" required class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <input type="tel" placeholder="Số điện thoại" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <textarea placeholder="Nội dung liên hệ" required class="form-control"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">GỬI LIÊN HỆ</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>VỀ CHÚNG TÔI</h3>
+                <p>Chuyên cung cấp đồng phục bóng đá chính hãng, chất lượng cao với giá cả hợp lý.</p>
+            </div>
+            <div class="footer-section">
+                <h3>LIÊN KẾT NHANH</h3>
+                <ul>
+                    <li><a href="#">Trang chủ</a></li>
+                    <li><a href="../XEM_TAT_CA/xemtatca.html">Sản phẩm</a></li>
+                    <li><a href="../GIOI_THIEU/gioithieu.html">Giới thiệu</a></li>
+                    <li><a href="../LIEN_HE/lienhe.html">Liên hệ</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>HỖ TRỢ</h3>
+                <ul>
+                    <li><a href="../LIEN_HE/lienhe.html#return-policy-section">Chính sách đổi trả</a></li>
+                    <li><a href="../LIEN_HE/lienhe.html#shopping-guide-section">Hướng dẫn mua hàng</a></li>
+                    <li><a href="../LIEN_HE/lienhe.html#faq-section">Câu hỏi thường gặp</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 FOOTBALLSTORE. All Rights Reserved.</p>
+        </div>
+    </footer>
+    <!-- Scripts -->
+    <script src="/User_FE/js/home/fetch-images.js"></script>
+    <script src="/User_FE/js/home/load-teams.js"></script>
+    <script src="/User_FE/js/home/home.js"></script>
+    <script src="/User_FE/js/product-display.js"></script>
+</body>
+</html>

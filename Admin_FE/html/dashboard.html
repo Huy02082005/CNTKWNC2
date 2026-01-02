@@ -19,10 +19,9 @@
     <div class="sidebar-menu">
       <ul>
         <li class="active"><a href="#"><i class="fas fa-home"></i> <span>Dashboard</span></a></li>
-        <li><a href="user.html"><i class="fas fa-users"></i> <span>Quản lý người dùng</span></a></li>
+        <li><a href="user.html"><i class="fas fa-users"></i> <span>Quản lý khách hàng</span></a></li>
         <li><a href="orders.html"><i class="fas fa-shopping-cart"></i> <span>Đơn hàng</span></a></li>
         <li><a href="products.html"><i class="fas fa-box"></i> <span>Sản phẩm</span></a></li>
-        <!-- Menu Admin - CHỈ HIỂN THỊ KHI LÀ SUPER ADMIN -->
         <li id="adminMenuItem" style="display: none;">
           <a href="admin.html">
             <i class="fas fa-user-shield"></i> 
@@ -94,7 +93,7 @@
           <div class="stat-info">
             <h3>Sản phẩm</h3>
             <h2 id="totalProducts">0</h2>
-            <p><i class="fas fa-arrow-down text-danger"></i> <span id="productChange">0%</span> so với tháng trước</p>
+            <p><i class="fas fa-arrow-down text-danger"></i> <span id="productChange">15%</span> so với tháng trước</p>
           </div>
           <div class="stat-icon bg-dark">
             <i class="fas fa-box"></i>
@@ -133,7 +132,7 @@
     <div class="table-container">
       <div class="table-header">
         <h2>Người dùng mới</h2>
-        <a href="user.html" class="btn btn-primary">Thêm người dùng</a>
+        <a href="user.html" class="btn btn-primary">Xem tất cả</a>
       </div>
       
       <table>
@@ -224,37 +223,46 @@
 
     // Hàm tải thống kê dashboard
     async function loadDashboardStats() {
-      try {
-        const response = await fetch('/dashboard/stats', {
-          credentials: 'include'
-        });
-        
-        if (!response.ok) {
-          console.warn('Không thể tải stats, sử dụng data mẫu');
-          showFallbackStats();
-          return;
-        }
-        
-        const result = await response.json();
-        
-        if (result.success && result.data) {
-          const stats = result.data;
-          
-          // Cập nhật UI
-          document.getElementById('totalUsers').textContent = stats.totalCustomers || '0';
-          document.getElementById('totalOrders').textContent = stats.totalOrders || '0';
-          document.getElementById('totalRevenue').textContent = formatCurrency(stats.totalRevenue) || '0 VNĐ';
-          document.getElementById('totalProducts').textContent = stats.totalProducts || '0';
-          
-        } else {
-          showFallbackStats();
-        }
-        
-      } catch (error) {
-        console.error('❌ Lỗi tải stats:', error);
-        showFallbackStats();
-      }
+  try {
+    console.log("🔄 Đang tải dữ liệu thống kê từ API...");
+    
+    const response = await fetch('/dashboard/stats', {
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
+    const result = await response.json();
+    console.log("📊 Kết quả API:", result);
+    
+    if (result.success && result.data) {
+      const stats = result.data;
+      
+      // Cập nhật UI với dữ liệu thực tế
+      document.getElementById('totalUsers').textContent = stats.totalCustomers || '0';
+      document.getElementById('totalOrders').textContent = stats.totalOrders || '0';
+      document.getElementById('totalRevenue').textContent = formatCurrency(stats.totalRevenue) || '0 VNĐ';
+      document.getElementById('totalProducts').textContent = stats.totalProducts || '0';
+      
+      // Tính phần trăm thay đổi (có thể tính sau khi có dữ liệu tháng trước)
+      // Tạm thời hiển thị mặc định
+      document.getElementById('userChange').textContent = '0%';
+      document.getElementById('orderChange').textContent = '0%';
+      document.getElementById('revenueChange').textContent = '0%';
+      document.getElementById('productChange').textContent = '0%';
+      
+    } else {
+      console.warn('API trả về không thành công:', result.message);
+      showFallbackStats();
+    }
+    
+  } catch (error) {
+    console.error('❌ Lỗi tải stats:', error);
+    showFallbackStats();
+  }
+}
 
     // Hàm tải đơn hàng gần đây
     async function loadRecentOrders() {

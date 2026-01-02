@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Product Detail</title>
+    <link rel="stylesheet" href="/User_FE/css/product_detail.css">
+</head>
+<body>
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb">
+        <a href="/User_FE/html/home.html">Trang chủ</a> &gt;
+        <a href="#" id="category-link"></a> &gt;
+        <span id="product-name"></span>
+    </nav>
+
+    <!-- Product Detail Container -->
+    <div class="product-detail-container">
+        <!-- Product Images -->
+        <div class="product-images">
+            <div class="main-image">
+                <img src="" alt="" id="main-img">
+            </div>
+            <div class="thumbnail-images">
+                <!-- Thumbnails sẽ được thêm bằng JS -->
+            </div>
+        </div>
+
+        <!-- Product Info -->
+        <div class="product-info">
+            <h1 class="product-title" id="product-title"></h1>
+            
+            <!-- Rating -->
+            <div class="product-rating">
+                <span class="stars">★★★★☆</span>
+                <span class="review-count">(42 đánh giá)</span>
+            </div>
+            
+            <!-- Price -->
+            <div class="product-price" id="price-container">
+                <!-- Price sẽ được thêm bằng JS -->
+            </div>
+            
+            <!-- Product Meta -->
+            <div class="product-meta">
+                <div class="meta-item">
+                    <strong>Thương hiệu:</strong>
+                    <a href="#" id="brand-link"></a>
+                </div>
+                <div class="meta-item">
+                    <strong>Giải đấu:</strong>
+                    <a href="#" id="league-link"></a>
+                </div>
+                <div class="meta-item">
+                    <strong>Tình trạng:</strong>
+                    <span class="stock-status" id="stock-status"></span>
+                </div>
+                <div class="meta-item">
+                    <strong>Mã sản phẩm:</strong>
+                    <span id="product-code"></span>
+                </div>
+            </div>
+
+            <!-- Size Selection -->
+            <div class="size-selection" id="size-section" style="display: none;">
+                <h3>Chọn size:</h3>
+                <div class="size-options" id="size-options">
+                    <!-- Sizes sẽ được thêm bằng JS -->
+                </div>
+                <div class="size-guide">
+                    <a href="/size-guide">Hướng dẫn chọn size</a>
+                </div>
+            </div>
+
+            <!-- Quantity & Actions -->
+            <div class="product-actions">
+                <div class="quantity-selector">
+                    <button class="qty-btn minus">-</button>
+                    <input type="number" id="quantity" value="1" min="1">
+                    <button class="qty-btn plus">+</button>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn-add-to-cart" id="add-to-cart-btn">
+                        <i class="cart-icon">🛒</i> Thêm vào giỏ hàng
+                    </button>
+                    
+                    <button class="btn-buy-now" id="buy-now-btn">
+                        Mua ngay
+                    </button>
+                    
+                    <button class="btn-favorite" id="favorite-btn">
+                        <i class="heart-icon">❤️</i> Yêu thích
+                    </button>
+                </div>
+            </div>
+
+            <!-- Shipping Info -->
+            <div class="shipping-info">
+                <h3>🛵 Giao hàng nhanh</h3>
+                <p>Miễn phí vận chuyển cho đơn hàng từ 500.000₫</p>
+                <p>Nhận hàng trong 2-4 ngày làm việc tại Hà Nội & TP.HCM</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Description & Details -->
+    <div class="product-tabs">
+        <div class="tab-headers">
+            <button class="tab-btn active" data-tab="description">Mô tả sản phẩm</button>
+            <button class="tab-btn" data-tab="specs">Thông số kỹ thuật</button>
+            <button class="tab-btn" data-tab="reviews">Đánh giá (42)</button>
+            <button class="tab-btn" data-tab="qna">Hỏi & đáp</button>
+        </div>
+        
+        <div class="tab-content">
+            <div id="description" class="tab-pane active">
+                <h3>Chi tiết sản phẩm</h3>
+                <p id="product-description"></p>
+                
+                <h4>Đặc điểm nổi bật:</h4>
+                <ul>
+                    <li>Chất liệu: Vải polyester cao cấp, thoáng khí</li>
+                    <li>In logo và họa tiết bằng công nghệ nhiệt chống phai</li>
+                    <li>Form áo chuẩn, thoải mái khi vận động</li>
+                    <li>Phù hợp: Đá bóng, tập luyện, cổ vũ</li>
+                </ul>
+                
+                <div class="product-images-detail">
+                    <img id="detail-img" alt="Chi tiết sản phẩm">
+                </div>
+            </div>
+            
+            <div id="specs" class="tab-pane">
+                <table class="spec-table">
+                    <tr>
+                        <th>Danh mục</th>
+                        <td id="spec-category"></td>
+                    </tr>
+                    <tr>
+                        <th>Thương hiệu</th>
+                        <td id="spec-brand"></td>
+                    </tr>
+                    <tr>
+                        <th>Giải đấu</th>
+                        <td id="spec-league"></td>
+                    </tr>
+                    <tr>
+                        <th>Mùa giải</th>
+                        <td id="spec-season"></td>
+                    </tr>
+                    <tr>
+                        <th>Cầu thủ</th>
+                        <td id="spec-player"></td>
+                    </tr>
+                    <tr>
+                        <th>Xuất xứ</th>
+                        <td>Việt Nam</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    <section class="related-products" id="related-section" style="display: none;">
+        <h2>Sản phẩm liên quan</h2>
+        <div class="product-grid" id="related-products">
+            <!-- Related products sẽ được thêm bằng JS -->
+        </div>
+    </section>
+    <script src="/User_FE/js/product-detail/product_detail.js"></script>
+</body>
+</html>
