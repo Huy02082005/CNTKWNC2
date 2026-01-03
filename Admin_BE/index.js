@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const path = require('path');
+const fs = require('fs');
 
 const { connectDB } = require('./config/db');
 const simpleHomeRoutes = require('./routes/simpleHomeRoutes');
@@ -9,143 +10,101 @@ const simpleHomeRoutes = require('./routes/simpleHomeRoutes');
 const app = express();
 
 app.use(cors({
-    origin: ['http://localhost:5500', 'http://127.0.0.1:5500', 'http://localhost:3000'],
+    origin: ['http://localhost:3000'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
 
-app.use('/api/products', require('./routes/userProductRoutes'));
+// ========== CẤU HÌNH STATIC FILES CHUẨN ==========
+
+// Cấu hình chính cho User_FE
+app.use(express.static(path.join(__dirname, '../User_FE')));
+
+// Route riêng cho các thư mục
+app.use('/css', express.static(path.join(__dirname, '../User_FE/css')));
+app.use('/js', express.static(path.join(__dirname, '../User_FE/js')));
+app.use('/image', express.static(path.join(__dirname, '../User_FE/image')));
+app.use('/html', express.static(path.join(__dirname, '../User_FE/html')));
+
+// Middleware
 app.use(express.json());
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, '../Admin_FE')));
-app.use('/api/simple', simpleHomeRoutes);
-app.use('/user', express.static(path.join(__dirname, '../User_FE')));
-app.use('/api/images', require('./routes/imageRoutes'));
-app.use('/user/js', express.static(path.join(__dirname, '../User_FE')));
-app.use('/api/products', require('./routes/userProductRoutes'));
 
-// Route để xem tất cả routes đã đăng ký
-app.get('/api/routes', (req, res) => {
-    const routes = [];
+// ========== ROUTES CỤ THỂ CHO CÁC FILE ==========
+
+// Route cho product-detail.html
+app.get('/product-detail.html', (req, res) => {
+    console.log('📄 Serving product-detail.html');
     
-    app._router.stack.forEach(middleware => {
-        if (middleware.route) { // routes registered directly on the app
-            routes.push({
-                path: middleware.route.path,
-                methods: Object.keys(middleware.route.methods)
-            });
-        } else if (middleware.name === 'router') { // router middleware
-            middleware.handle.stack.forEach(handler => {
-                if (handler.route) {
-                    routes.push({
-                        path: handler.route.path,
-                        methods: Object.keys(handler.route.methods),
-                        router: true
-                    });
-                }
-            });
+    const possiblePaths = [
+        path.join(__dirname, '../User_FE/html/product-detail.html'),
+        path.join(__dirname, '../User_FE/product-detail.html')
+    ];
+    
+    for (const filePath of possiblePaths) {
+        if (fs.existsSync(filePath)) {
+            console.log(`✅ Found at: ${filePath}`);
+            return res.sendFile(filePath);
+        }
+    }
+    
+    console.error('❌ product-detail.html not found in any location');
+    res.status(404).send('File not found');
+});
+
+// Route cho home.html
+app.get('/home.html', (req, res) => {
+    const filePath = path.join(__dirname, '../User_FE/html/home.html');
+    if (fs.existsSync(filePath)) {
+        res.sendFile(filePath);
+    } else {
+        res.status(404).send('home.html not found');
+    }
+});
+
+// Route cho see_all.html
+app.get('/see_all.html', (req, res) => {
+    const filePath = path.join(__dirname, '../User_FE/html/see_all.html');
+    if (fs.existsSync(filePath)) {
+        res.sendFile(filePath);
+    } else {
+        res.status(404).send('see_all.html not found');
+    }
+});
+
+// Route cho các file HTML khác
+const htmlFiles = [
+    'accessories.html', 'clothes.html', 'contact.html', 
+    'forgotpassword.html', 'gloves.html', 'introduction.html',
+    'login.html', 'shoes.html'
+];
+
+htmlFiles.forEach(filename => {
+    app.get(`/${filename}`, (req, res) => {
+        const filePath = path.join(__dirname, `../User_FE/html/${filename}`);
+        if (fs.existsSync(filePath)) {
+            res.sendFile(filePath);
+        } else {
+            res.status(404).send(`${filename} not found`);
         }
     });
-    
-    res.json({
-        success: true,
-        totalRoutes: routes.length,
-        routes: routes
-    });
 });
 
-app.get('/home.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '../User_FE/home.html'));
-});
+// ========== API ROUTES ==========
+app.use('/api/simple', simpleHomeRoutes);
+app.use('/api/images', require('./routes/imageRoutes'));
+app.use('/api/products', require('./routes/userProductRoutes'));
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/customer', require('./routes/authCustomerRoutes'));
+app.use('/api/otp', require('./routes/otpRoutes'));
 
-app.get('/home.css', (req, res) => {
-    res.sendFile(path.join(__dirname, '../User_FE/home.css'));
-});
-
-app.get('/home.js', (req, res) => {
-    res.sendFile(path.join(__dirname, '../User_FE/home.js'));
-});
-
-app.get('/fetch-images.js', (req, res) => {
-    res.sendFile(path.join(__dirname, '../User_FE/fetch-images.js'));
-});
-
-// Thêm route cho see_all.html
-app.get('/see_all.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '../User_FE/see_all.html'));
-});
-
-// Route cho các file CSS/JS liên quan
-app.get('/see_all.css', (req, res) => {
-    res.sendFile(path.join(__dirname, '../User_FE/see_all.css'));
-});
-
-app.get('/see_all.js', (req, res) => {
-    res.sendFile(path.join(__dirname, '../User_FE/see_all.js'));
-});
-
-// Thêm route cho product_display.js
-app.get('/product_display.js', (req, res) => {
-    res.sendFile(path.join(__dirname, '../User_FE/product_display.js'));
-});
-
-app.use('/image', express.static(path.join(__dirname, '../User_FE/image')));
-
-app.get('/', (req, res) => {
-    if (req.cookies.authToken) {
-        res.redirect('/admin.html');
-    } else {
-        res.redirect('/home.html');
-    }
-});
-
-async function initializeDatabase() {
-    try {
-        const pool = await connectDB();
-        app.locals.db = pool;
-    } catch (err) {
-        console.error('❌ Lỗi kết nối SQL Server:', err.message);
-        app.locals.db = null;
-    }
-}
-
-initializeDatabase();
-
-app.use((req, res, next) => {
-  if ((req.path.startsWith('/auth') || req.path.startsWith('/account')) && !req.app.locals.db) {
-    initializeDatabase().then(() => {
-      next();
-    }).catch(err => {
-      console.error('❌ Failed to reconnect database');
-      res.status(503).json({ 
-        error: 'Database đang kết nối, vui lòng thử lại sau',
-        retry: true
-      });
-    });
-  } else {
-    next();
-  }
-});
-
-app.get('/product-detail.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '../User_FE/html/product-detail.html'));
-});
-
-// Route cho CSS của product detail
-app.get('/product-detail.css', (req, res) => {
-    res.sendFile(path.join(__dirname, '../User_FE/css/product_detail.css'));
-});
-
-// Route cho JavaScript của product detail
-app.get('/product-detail.js', (req, res) => {
-    res.sendFile(path.join(__dirname, '../User_FE/js/product-detail/product_detail.js'));
-});
-
-// Route API để lấy chi tiết sản phẩm
+// API để lấy chi tiết sản phẩm
 app.get('/api/product-detail/:id', async (req, res) => {
     try {
         const productId = req.params.id;
+        console.log(`📦 API: Loading product ${productId}`);
         
         if (!app.locals.db) {
             return res.status(500).json({ error: 'Database not connected' });
@@ -153,14 +112,12 @@ app.get('/api/product-detail/:id', async (req, res) => {
         
         const request = app.locals.db.request();
         
-        // Lấy thông tin sản phẩm chính
         const productQuery = `
             SELECT 
                 p.*, 
                 c.CategoryName, 
                 b.BrandName, 
-                l.LeagueName,
-                l.Country
+                l.LeagueName
             FROM Product p
             LEFT JOIN Category c ON p.CategoryID = c.CategoryID
             LEFT JOIN Brand b ON p.BrandID = b.BrandID
@@ -178,48 +135,6 @@ app.get('/api/product-detail/:id', async (req, res) => {
         
         const product = productResult.recordset[0];
         
-        // Lấy sizes có sẵn
-        const sizesQuery = `
-            SELECT 
-                ps.SizeID, 
-                ps.SizeName, 
-                ps.SizeType, 
-                ISNULL(psm.StockQuantity, 0) as StockQuantity
-            FROM ProductSizeMapping psm
-            JOIN ProductSize ps ON psm.SizeID = ps.SizeID
-            WHERE psm.ProductID = @productId 
-                AND psm.IsActive = 1 
-                AND psm.StockQuantity > 0
-            ORDER BY ps.SizeType, ps.SizeName
-        `;
-        
-        const sizesResult = await request
-            .input('productId', productId)
-            .query(sizesQuery);
-        
-        // Lấy sản phẩm liên quan
-        const relatedQuery = `
-            SELECT TOP 4 
-                p.ProductID, 
-                p.ProductName, 
-                p.ImageURL, 
-                p.SellingPrice, 
-                p.Discount,
-                p.StockQuantity
-            FROM Product p
-            WHERE (p.CategoryID = @categoryId OR p.LeagueID = @leagueId)
-                AND p.ProductID != @productId
-                AND p.Status = 'active'
-            ORDER BY NEWID()
-        `;
-        
-        const relatedResult = await request
-            .input('categoryId', product.CategoryID)
-            .input('leagueId', product.LeagueID)
-            .input('productId', productId)
-            .query(relatedQuery);
-        
-        // Tính giá sau giảm
         const discountedPrice = product.Discount > 0 
             ? product.SellingPrice - (product.SellingPrice * product.Discount / 100)
             : product.SellingPrice;
@@ -228,11 +143,8 @@ app.get('/api/product-detail/:id', async (req, res) => {
             success: true,
             product: {
                 ...product,
-                discountedPrice: discountedPrice
-            },
-            sizes: sizesResult.recordset,
-            relatedProducts: relatedResult.recordset,
-            hasSizes: sizesResult.recordset.length > 0
+                discountedPrice: Math.round(discountedPrice)
+            }
         });
         
     } catch (error) {
@@ -244,75 +156,7 @@ app.get('/api/product-detail/:id', async (req, res) => {
     }
 });
 
-// Route cho sản phẩm liên quan
-app.get('/api/related-products/:id', async (req, res) => {
-    try {
-        const productId = req.params.id;
-        
-        if (!app.locals.db) {
-            return res.status(500).json({ error: 'Database not connected' });
-        }
-        
-        const request = app.locals.db.request();
-        
-        // Lấy category và league của sản phẩm hiện tại
-        const infoQuery = `
-            SELECT CategoryID, LeagueID 
-            FROM Product 
-            WHERE ProductID = @productId
-        `;
-        
-        const infoResult = await request
-            .input('productId', productId)
-            .query(infoQuery);
-        
-        if (!infoResult.recordset || infoResult.recordset.length === 0) {
-            return res.json({ success: true, products: [] });
-        }
-        
-        const { CategoryID, LeagueID } = infoResult.recordset[0];
-        
-        // Lấy sản phẩm liên quan
-        const relatedQuery = `
-            SELECT TOP 8 
-                ProductID, 
-                ProductName, 
-                ImageURL, 
-                SellingPrice, 
-                Discount,
-                StockQuantity
-            FROM Product
-            WHERE (CategoryID = @categoryId OR LeagueID = @leagueId)
-                AND ProductID != @productId
-                AND Status = 'active'
-            ORDER BY NEWID()
-        `;
-        
-        const relatedResult = await request
-            .input('categoryId', CategoryID)
-            .input('leagueId', LeagueID)
-            .input('productId', productId)
-            .query(relatedQuery);
-        
-        res.json({
-            success: true,
-            products: relatedResult.recordset
-        });
-        
-    } catch (error) {
-        console.error('Error loading related products:', error);
-        res.status(500).json({ error: 'Lỗi tải sản phẩm liên quan' });
-    }
-});
-
-app.get('/product/:id', (req, res) => {
-    console.log(`📦 Product detail request: ${req.params.id}`);
-    
-    // Gửi file HTML product-detail.html
-    res.sendFile(path.join(__dirname, '../User_FE/html/product-detail.html'));
-});
-
-// API để lấy thông tin sản phẩm
+// API alias
 app.get('/api/products/:id', async (req, res) => {
     try {
         const productId = req.params.id;
@@ -344,9 +188,7 @@ app.get('/api/products/:id', async (req, res) => {
         
         res.json({
             success: true,
-            product: mockProduct,
-            sizes: mockProduct.sizes,
-            relatedProducts: []
+            product: product
         });
         
     } catch (error) {
@@ -355,99 +197,46 @@ app.get('/api/products/:id', async (req, res) => {
     }
 });
 
-app.get('/debug/product-detail', (req, res) => {
-    const filePath = path.join(__dirname, '../User_FE/html/product-detail.html');
-    res.sendFile(filePath);
-});
-
-app.get('/debug/product-detail-content', (req, res) => {
-    const filePath = path.join(__dirname, '../User_FE/html/product-detail.html');
-    const fs = require('fs');
-    const content = fs.readFileSync(filePath, 'utf8');
-    
-    // Kiểm tra có meta CSP không
-    const hasMetaCSP = content.includes('Content-Security-Policy');
-    const hasDefaultSrcNone = content.includes("default-src 'none'");
-    
-    res.json({
-        file: 'product-detail.html',
-        hasMetaCSP: hasMetaCSP,
-        hasDefaultSrcNone: hasDefaultSrcNone,
-        metaTags: extractMetaTags(content),
-        fileSize: content.length
-    });
-});
-
-function extractMetaTags(html) {
-    const metaRegex = /<meta[^>]+>/g;
-    const matches = html.match(metaRegex) || [];
-    return matches.filter(meta => 
-        meta.includes('http-equiv') || 
-        meta.includes('Content-Security-Policy')
-    );
-}
-
-async function checkAndReconnectDB() {
-  try {
-    if (!app.locals.db || !app.locals.db.connected) {
-      const pool = await connectDB();
-      app.locals.db = pool;
+// ========== DATABASE INITIALIZATION ==========
+async function initializeDatabase() {
+    try {
+        const pool = await connectDB();
+        app.locals.db = pool;
+        console.log('✅ Database connected successfully');
+    } catch (err) {
+        console.error('❌ Lỗi kết nối SQL Server:', err.message);
+        app.locals.db = null;
     }
-  } catch (error) {
-    console.error('❌ Failed to reconnect database:', error.message);
-  }
 }
 
-app.use(async (req, res, next) => {
-  if (req.path.startsWith('/product') || 
-      req.path.startsWith('/order') || 
-      req.path.startsWith('/api/')) {
-    await checkAndReconnectDB();
-  }
-  next();
-});
+initializeDatabase();
 
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/admin', require('./routes/adminRoutes'));
-app.use('/product', require('./routes/productRoutes'));
-app.use('/order', require('./routes/orderRoutes'));
-app.use('/customer', require('./routes/customerRoutes'));
-app.use('/dashboard', require('./routes/dashboardRoutes'));
-app.use('/stats', require('./routes/statisticsRoutes'));
-app.use('/settings', require('./routes/settingsRoutes'));
-
-app.use(express.static(`${__dirname}/User_FE/image`));
-
-app.get('/user.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Admin_FE/html/user.html'));
-});
-
-app.get('/orders.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Admin_FE/html/orders.html'));
-});
-
-app.get('/products.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Admin_FE/html/products.html'));
-});
-
-app.get('/settings.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Admin_FE/html/settings.html'));
-});
-
-app.get('/admin.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Admin_FE/html/admin.html'));
-});
-
-app.get('/login.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Admin_FE/html/login.html'));
-});
-
-app.get('/dashboard.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Admin_FE/html/dashboard.html'));
-});
-
+// ========== DEFAULT ROUTE ==========
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Admin_FE/html/login.html'));
+    const homePath = path.join(__dirname, '../User_FE/html/home.html');
+    if (fs.existsSync(homePath)) {
+        res.sendFile(homePath);
+    } else {
+        res.send('Welcome to Football Store');
+    }
 });
 
-app.listen(3000, () => console.log('🚀 Server running on port 3000'));
+// ========== 404 HANDLER ==========
+app.use((req, res) => {
+    console.log(`❌ 404: ${req.url} not found`);
+    res.status(404).send(`
+        <h1>404 - File Not Found</h1>
+        <p>The requested URL ${req.url} was not found on this server.</p>
+        <p>Try these links:</p>
+        <ul>
+            <li><a href="/home.html">Home</a></li>
+            <li><a href="/product-detail.html?id=1">Product Detail</a></li>
+            <li><a href="/see_all.html">See All Products</a></li>
+        </ul>
+    `);
+});
+
+// ========== START SERVER ==========
+const PORT = 3000;
+app.listen(PORT, () => {
+});

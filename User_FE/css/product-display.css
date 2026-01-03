@@ -115,6 +115,8 @@
 
 .product-price {
     margin: 10px 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .current-price {
@@ -130,21 +132,6 @@
     margin-left: 8px;
 }
 
-.product-stock {
-    margin-top: auto;
-}
-
-.in-stock {
-    color: #2e7d32;
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.out-stock {
-    color: #c62828;
-    font-size: 13px;
-    font-weight: 500;
-}
 
 /* Product Actions */
 .product-actions {
@@ -153,7 +140,6 @@
     gap: 10px;
 }
 
-.btn-view-detail,
 .btn-quick-add {
     flex: 1;
     padding: 10px;
@@ -163,28 +149,26 @@
     cursor: pointer;
     transition: all 0.2s ease;
     border: none;
-}
-
-.btn-view-detail {
-    background: #f5f5f5;
-    color: #333;
-    border: 1px solid #ddd;
-}
-
-.btn-view-detail:hover {
-    background: #e53935;
-    color: white;
-    border-color: #e53935;
+    width: 100% !important;
 }
 
 .btn-quick-add {
-    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    width: calc(100% - 30px);
+    margin: 0 15px 15px;
+    padding: 10px;
+    background: #1a3e72;
     color: white;
+    border: none;
+    transition: 0.3s;
+    border-radius: 5px;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9rem;
 }
 
 .btn-quick-add:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
+    background: #0d2a57;
+    transform: translateY(-2px);
 }
 
 /* Pagination */

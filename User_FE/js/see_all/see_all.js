@@ -1,4 +1,424 @@
-document.addEventListener('DOMContentLoaded', function() {
+// ========== CONFIGURATION ==========
+const API_BASE_URL = 'http://localhost:3000';
+const API_URL = `${API_BASE_URL}/api/products`;
+let currentFilters = null;
+let productDisplay = null;
+
+// ========== INITIALIZATION ==========
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🚀 Khởi động hệ thống xem tất cả sản phẩm...');
+    
+    // 1. Khởi tạo Pagination
+    if (window.Pagination) {
+        window.Pagination.initPagination();
+        
+        // Thiết lập callback cho pagination
+        window.Pagination.setCallback(async function(page) {
+            console.log(`📄 Pagination callback for page ${page}, filters:`, currentFilters);
+            
+            if (currentFilters) {
+                await loadProductsWithFilters(currentFilters, page);
+            } else {
+                await loadProducts(page);
+            }
+        });
+    }
+    
+    // 2. Khởi tạo ProductDisplay component
+    await initProductDisplay();
+    
+    // 3. Khởi tạo bộ lọc
+    initFilters();
+    
+    // 4. Tải sản phẩm đầu tiên
+    await loadProducts(1);
+    
+    // 5. Khởi tạo UI
+    initUI();
+});
+
+
+// ========== PRODUCT DISPLAY INIT ==========
+async function initProductDisplay() {
+    const productGrid = document.querySelector('.product-grid');
+    
+    if (!productGrid) {
+        console.error('❌ Không tìm thấy .product-grid');
+        return;
+    }
+    
+    // Kiểm tra ProductDisplay class có tồn tại không
+    if (typeof window.ProductDisplay === 'function') {
+        productDisplay = new window.ProductDisplay({
+            container: productGrid,
+            products: [],
+            columns: 4,
+            showQuickAdd: true,
+            showDiscount: true,
+            showStock: true,
+            clickable: true,
+            
+            // Callbacks
+            onProductClick: handleProductClick,
+            onAddToCart: handleAddToCart
+        });
+        
+        console.log('✅ ProductDisplay initialized');
+    } else {
+        console.error('❌ ProductDisplay component not found!');
+        // Fallback: tạo container cơ bản
+        productGrid.style.display = 'grid';
+        productGrid.style.gridTemplateColumns = 'repeat(4, 1fr)';
+        productGrid.style.gap = '20px';
+        productGrid.style.padding = '20px 0';
+    }
+}
+
+// ========== PRODUCT LOADING LOGIC ==========
+
+// Tải sản phẩm theo trang
+async function loadProducts(page = 1) {
+    try {
+        console.log(`📡 Loading page ${page}...`);
+        
+        // Hiển thị loading
+        showLoading();
+        
+        // Gọi API
+        const response = await fetch(
+            `${API_URL}?page=${page}&limit=${window.Pagination?.getProductsPerPage() || 16}`
+        );
+        
+        if (!response.ok) {
+            throw new Error(`API error ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.message || 'API failed');
+        }
+        
+        if (!data.products || !Array.isArray(data.products)) {
+            throw new Error('No products');
+        }
+        
+        // Cập nhật phân trang
+        if (window.Pagination) {
+            window.Pagination.updatePaginationInfo(
+                data.pagination?.total || 0,
+                data.pagination?.totalPages || 1
+            );
+            
+            // Tạo phân trang controls
+            window.Pagination.createPaginationControls();
+        }
+        
+        // Hiển thị sản phẩm
+        displayProducts(data.products);
+        
+    } catch (error) {
+        console.error('❌ Error loading products:', error);
+        showError(error);
+    }
+}
+
+// Tải sản phẩm với filter
+async function loadProductsWithFilters(filters, page = 1) {
+    try {
+        // Tạo query string
+        const queryParams = new URLSearchParams();
+        queryParams.append('page', page);
+        queryParams.append('limit', window.Pagination?.getProductsPerPage() || 16);
+        
+        // Thêm filters
+        if (filters.prices && filters.prices.length > 0) 
+            queryParams.append('prices', filters.prices.join(','));
+        if (filters.categories && filters.categories.length > 0) 
+            queryParams.append('categories', filters.categories.join(','));
+        if (filters.brands && filters.brands.length > 0) 
+            queryParams.append('brands', filters.brands.join(','));
+        if (filters.leagues && filters.leagues.length > 0) 
+            queryParams.append('leagues', filters.leagues.join(','));
+        
+        const url = `${API_URL}/filtered?${queryParams.toString()}`;
+        console.log('🌐 Gọi API filter:', url);
+        
+        // Hiển thị loading
+        showLoading(true);
+        
+        // Gọi API
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`Filter API trả về lỗi ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.message || 'Filter không thành công');
+        }
+        
+        // Cập nhật phân trang
+        if (window.Pagination) {
+            window.Pagination.updatePaginationInfo(
+                data.total || 0,
+                data.totalPages || 1
+            );
+            
+            // Tạo phân trang controls
+            window.Pagination.createPaginationControls();
+        }
+        
+        // Hiển thị sản phẩm
+        displayProducts(data.products || []);
+        
+    } catch (error) {
+        console.error('❌ Filter error:', error);
+        showError(error);
+    }
+}
+
+// ========== DISPLAY FUNCTIONS ==========
+
+function showLoading(isFiltering = false) {
+    const productGrid = document.querySelector('.product-grid');
+    if (!productGrid) return;
+    
+    productGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 50px;">
+            <div style="display: inline-block; padding: 20px; background: #f5f5f5; border-radius: 10px;">
+                <p style="margin-bottom: 10px; color: #666;">
+                    ${isFiltering ? '🔄 Đang lọc' : '🔄 Đang tải'} sản phẩm...
+                </p>
+                <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #1a3e72; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+            </div>
+        </div>
+    `;
+}
+
+function displayProducts(products) {
+    if (productDisplay && typeof productDisplay.updateProducts === 'function') {
+        // Dùng ProductDisplay component để render
+        productDisplay.updateProducts(products);
+    } else {
+        // Fallback: render cơ bản
+        renderProductsFallback(products);
+    }
+}
+
+function renderProductsFallback(products) {
+    const productGrid = document.querySelector('.product-grid');
+    if (!productGrid) return;
+    
+    productGrid.innerHTML = '';
+    
+    if (products.length === 0) {
+        productGrid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 50px;">
+                <div style="background: #fffaf0; border: 1px solid #feebc8; border-radius: 10px; padding: 30px; max-width: 400px; margin: 0 auto;">
+                    <h3 style="color: #dd6b20; margin-bottom: 15px;">🔍 Không tìm thấy sản phẩm</h3>
+                    <p style="color: #666;">Không có sản phẩm nào phù hợp</p>
+                </div>
+            </div>
+        `;
+        return;
+    }
+}
+
+function showError(error) {
+    const productGrid = document.querySelector('.product-grid');
+    if (productGrid) {
+        productGrid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 50px;">
+                <div style="background: #fff5f5; border: 1px solid #fed7d7; border-radius: 10px; padding: 30px; max-width: 500px; margin: 0 auto;">
+                    <h3 style="color: #e53e3e; margin-bottom: 15px;">⚠️ Lỗi hệ thống</h3>
+                    <p style="color: #666; margin-bottom: 10px;">${error.message || 'Lỗi không xác định'}</p>
+                    <div style="margin-top: 20px;">
+                        <button onclick="location.reload()" style="padding: 10px 20px; background: #1a3e72; color: white; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px;">
+                            🔄 Tải lại trang
+                        </button>
+                        <button onclick="loadProducts(1)" style="padding: 10px 20px; background: #38a169; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            📦 Thử lại
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// ========== PAGINATION CALLBACK ==========
+function setupPaginationCallback(page, filters = null) {
+    if (window.Pagination) {
+        // Setup callback cho pagination
+        const originalGoToPage = window.Pagination.goToPage;
+        
+        window.Pagination.goToPage = async function(newPage) {
+            if (newPage < 1 || newPage > window.Pagination.getTotalPages()) return;
+            
+            if (filters) {
+                await loadProductsWithFilters(filters, newPage);
+            } else {
+                await loadProducts(newPage);
+            }
+            
+            // Restore original function
+            window.Pagination.goToPage = originalGoToPage;
+        };
+    }
+}
+
+// ========== FILTER LOGIC ==========
+
+// Map giá trị checkbox sang giá trị trong database
+const CATEGORY_MAP = {
+    'ao-bong-da': 'Áo đấu',
+    'giay-bong-da': 'Giày bóng đá',
+    'phu-kien': 'Phụ kiện',
+    'ao-khoac': 'Áo khoác thể thao',
+    'gang-tay': 'Găng tay thủ môn'
+};
+
+const BRAND_MAP = {
+    'nike': 'Nike',
+    'adidas': 'Adidas',
+    'puma': 'Puma',
+    'mizuno': 'Mizuno',
+    'new-balance': 'New Balance'
+};
+
+const LEAGUE_MAP = {
+    'premier-league': 'Premier League',
+    'la-liga': 'La Liga',
+    'serie-a': 'Serie A',
+    'bundesliga': 'Bundesliga',
+    'ligue-1': 'Ligue 1',
+    'v-league': 'V-League',
+    'doi-tuyen-quoc-gia': 'NATIONAL'
+};
+
+function initFilters() {    
+    // Đảm bảo checkbox "Còn hàng" được chọn mặc định
+    const activeCheckbox = document.querySelector('input[name="status"][value="active"]');
+    if (activeCheckbox && !activeCheckbox.checked) {
+        activeCheckbox.checked = true;
+    }
+    
+    // Gắn sự kiện cho tất cả checkbox
+    document.querySelectorAll('.filter-sidebar input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            applyFilters();
+        });
+    });
+}
+
+function applyFilters() {
+    console.log('🔘 Áp dụng bộ lọc...');
+    
+    // Thu thập filter
+    const filters = collectFilters();
+    
+    // Kiểm tra có filter nào không
+    const hasAnyFilter = Object.values(filters).some(arr => arr.length > 0);
+    
+    if (hasAnyFilter) {
+        console.log('✅ Có filter, gọi API filter...');
+        currentFilters = filters;
+        loadProductsWithFilters(filters, 1);
+    } else {
+        console.log('✅ Không có filter, tải tất cả sản phẩm');
+        currentFilters = null;
+        loadProducts(1);
+    }
+}
+
+function collectFilters() {
+    const filters = {
+        prices: [],
+        categories: [],
+        brands: [],
+        leagues: [],
+        status: []
+    };
+    
+    document.querySelectorAll('input[name="price"]:checked').forEach(cb => {
+        filters.prices.push(cb.value);
+    });
+    
+    document.querySelectorAll('input[name="category"]:checked').forEach(cb => {
+        filters.categories.push(CATEGORY_MAP[cb.value] || cb.value);
+    });
+    
+    document.querySelectorAll('input[name="brand"]:checked').forEach(cb => {
+        filters.brands.push(BRAND_MAP[cb.value] || cb.value);
+    });
+    
+    document.querySelectorAll('input[name="league"]:checked').forEach(cb => {
+        filters.leagues.push(LEAGUE_MAP[cb.value] || cb.value);
+    });
+    
+    document.querySelectorAll('input[name="status"]:checked').forEach(cb => {
+        filters.status.push(cb.value);
+    });
+    
+    return filters;
+}
+
+// ========== EVENT HANDLERS ==========
+
+function handleProductClick(productId, event) {
+    console.log(`🛒 Click sản phẩm: ${productId}`);
+    window.location.href = `${this.BASE_URL}/product-detail.html?id=${productId}`;
+}
+
+function handleAddToCart(productId, event) {
+    console.log(`🛒 Thêm vào giỏ: ${productId}`);
+    
+    // Update cart count
+    const cartCount = document.querySelector('.cart-count');
+    if (cartCount) {
+        let count = parseInt(cartCount.textContent) || 0;
+        count++;
+        cartCount.textContent = count;
+        cartCount.classList.add('pulse');
+        setTimeout(() => cartCount.classList.remove('pulse'), 300);
+    }
+    
+    // Show notification
+    showNotification('Đã thêm sản phẩm vào giỏ hàng');
+}
+
+function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #4CAF50;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 5px;
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        max-width: 300px;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// ========== UI INITIALIZATION ==========
+
+function initUI() {
     // Dropdown menu functionality
     const dropdowns = document.querySelectorAll('.dropdown');
     dropdowns.forEach(dropdown => {
@@ -10,25 +430,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Add to cart functionality
-    const addToCartButtons = document.querySelectorAll('.add-to-cart');
-    const cartCount = document.querySelector('.cart-count');
-    let count = 0;
-    addToCartButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            count++;
-            cartCount.textContent = count;
-            cartCount.classList.add('pulse');
-            setTimeout(() => {
-                cartCount.classList.remove('pulse');
-            }, 300);
-        });
-    });
-
-    // QUAN TRỌNG: Khởi tạo bộ lọc
-    console.log('🚀 Khởi động hệ thống lọc...');
-    initFilters();
-    
     // Các event listeners ngăn scroll ngang
     document.addEventListener('touchmove', function(e) {
         if (e.touches.length > 1) {
@@ -51,194 +452,12 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
         }
     }, { passive: false });
-});
-
-// Hàm lọc
-let activeFilters = {
-    prices: [],
-    categories: [],
-    brands: [],
-    leagues: [],
-    status: [],
-    sizes: []
-};
-
-// Hàm chuẩn hóa chuỗi để so sánh
-function normalizeString(str) {
-    if (!str) return '';
-    return str.toLowerCase()
-        .replace(/á|à|ả|ã|ạ|â|ấ|ầ|ẩ|ẫ|ậ|ă|ắ|ằ|ẳ|ẵ|ặ/g, "a")
-        .replace(/é|è|ẻ|ẽ|ẹ|ê|ế|ề|ể|ễ|ệ/g, "e")
-        .replace(/í|ì|ỉ|ĩ|ị/g, "i")
-        .replace(/ó|ò|ỏ|õ|ọ|ô|ố|ồ|ổ|ỗ|ộ|ơ|ớ|ờ|ở|ỡ|ợ/g, "o")
-        .replace(/ú|ù|ủ|ũ|ụ|ư|ứ|ừ|ử|ữ|ự/g, "u")
-        .replace(/ý|ỳ|ỷ|ỹ|ỵ/g, "y")
-        .replace(/đ/g, "d")
-        .replace(/\s+/g, '-')
-        .replace(/[^\w-]+/g, '')
-        .trim();
 }
 
-// Map giá trị checkbox sang giá trị trong database
-const CATEGORY_MAP = {
-    'ao-bong-da': 'ao-bong-da',
-    'giay-bong-da': 'giay-bong-da',
-    'phu-kien': 'phu-kien',
-    'ao-khoac': 'ao-khoac',
-    'gang-tay': 'gang-tay'
-};
+// ========== CLEAR FILTERS ==========
 
-const BRAND_MAP = {
-    'nike': 'nike',
-    'adidas': 'adidas',
-    'puma': 'puma',
-    'mizuno': 'mizuno',
-    'new-balance': 'new-balance'
-};
-
-const LEAGUE_MAP = {
-    'premier-league': 'premier-league',
-    'la-liga': 'la-liga',
-    'serie-a': 'serie-a', 
-    'bundesliga': 'bundesliga',
-    'ligue-1': 'ligue-1',
-    'v-league': 'v-league',
-    'doi-tuyen-quoc-gia': 'doi-tuyen-quoc-gia'
-}
-
-// Cập nhật active filters
-function updateActiveFilters() {
-    activeFilters = {
-        prices: Array.from(document.querySelectorAll('input[name="price"]:checked')).map(cb => cb.value),
-        categories: Array.from(document.querySelectorAll('input[name="category"]:checked')).map(cb => CATEGORY_MAP[cb.value] || cb.value),
-        brands: Array.from(document.querySelectorAll('input[name="brand"]:checked')).map(cb => BRAND_MAP[cb.value] || cb.value),
-        leagues: Array.from(document.querySelectorAll('input[name="league"]:checked')).map(cb => LEAGUE_MAP[cb.value] || cb.value),
-        status: Array.from(document.querySelectorAll('input[name="status"]:checked')).map(cb => cb.value)
-    };
-}
-
-// Kiểm tra xem có filter nào đang active không
-function hasActiveFilters() {
-    return activeFilters.prices.length > 0 ||
-           activeFilters.categories.length > 0 ||
-           activeFilters.brands.length > 0 ||
-           activeFilters.leagues.length > 0 ||
-           activeFilters.status.length > 0 ||
-           activeFilters.sizes.length > 0;
-}
-
-// Áp dụng bộ lọc
-function applyFilters() {
-    updateActiveFilters();
-    const products = document.querySelectorAll('.product-card');
-    let visibleCount = 0;
-    
-    // Nếu không có filter nào, hiển thị tất cả
-    if (!hasActiveFilters()) {
-        products.forEach(product => {
-            product.style.display = "flex";
-            product.classList.remove('filtered-out');
-        });
-        updateProductStats(products.length);
-        return;
-    }
-    
-    products.forEach(product => {
-        let show = true;
-        
-        // Lấy data attributes
-        const price = parseFloat(product.dataset.price) || 0;
-        const category = product.dataset.category || '';
-        const brand = product.dataset.brand || '';
-        const league = product.dataset.league || '';
-        const status = product.dataset.status || 'active';
-        const size = product.dataset.size || '';
-
-        // 1. Lọc theo GIÁ
-        if (activeFilters.prices.length > 0 && show) {
-            const priceMatch = activeFilters.prices.some(priceRange => {
-                switch(priceRange) {
-                    case 'duoi500': return price < 500000;
-                    case '500-1000': return price >= 500000 && price <= 1000000;
-                    case 'tren1000': return price > 1000000;
-                    default: return true;
-                }
-            });
-            show = priceMatch;
-            if (!priceMatch) console.log(`   ❌ Lọc giá: ${price} không thuộc ${activeFilters.prices}`);
-        }
-        
-        // 2. Lọc theo LOẠI SẢN PHẨM
-        if (activeFilters.categories.length > 0 && show) {
-            const categoryMatch = activeFilters.categories.includes(category);
-            show = categoryMatch;
-            if (!categoryMatch) console.log(`   ❌ Lọc loại: ${category} không khớp ${activeFilters.categories}`);
-        }
-        
-        // 3. Lọc theo THƯƠNG HIỆU
-        if (activeFilters.brands.length > 0 && show) {
-            const brandMatch = activeFilters.brands.includes(brand);
-            show = brandMatch;
-            if (!brandMatch) console.log(`   ❌ Lọc thương hiệu: ${brand} không khớp ${activeFilters.brands}`);
-        }
-        
-        // 4. Lọc theo GIẢI ĐẤU (đặc biệt xử lý)
-        if (activeFilters.leagues.length > 0 && show) {
-            let leagueMatch = false;
-            
-            if (league) {
-                // So sánh trực tiếp hoặc qua map
-                leagueMatch = activeFilters.leagues.some(filterLeague => {
-                    return normalizeString(league).includes(normalizeString(filterLeague)) ||
-                           normalizeString(filterLeague).includes(normalizeString(league));
-                });
-            } else {
-                leagueMatch = true;
-            }
-            
-            show = leagueMatch;
-            if (!leagueMatch) console.log(`   ❌ Lọc giải đấu: "${league}" không khớp ${activeFilters.leagues}`);
-        }
-        
-        // 5. Lọc theo TRẠNG THÁI
-        if (activeFilters.status.length > 0 && show) {
-            let statusMatch = false;
-            
-            // Kiểm tra "Còn hàng"
-            if (activeFilters.status.includes('active')) {
-                statusMatch = status === 'active' || status === '';
-            }
-            
-            // Kiểm tra "Đang giảm giá"
-            if (activeFilters.status.includes('onsale') && !statusMatch) {
-                const discountEl = product.querySelector('.discount-badge');
-                statusMatch = discountEl !== null;
-            }
-            
-            show = statusMatch;
-            if (!statusMatch) console.log(`   ❌ Lọc trạng thái: ${status} không khớp ${activeFilters.status}`);
-        }
-        
-        // Áp dụng hiển thị
-        product.style.display = show ? "flex" : "none";
-        product.classList.toggle('filtered-out', !show);
-        
-        if (show) {
-            visibleCount++;
-        }
-    });
-    updateProductStats(visibleCount);
-}
-
-// Cập nhật thống kê
-function updateProductStats(count) {   
-    // Gắn sự kiện xóa bộ lọc
-    document.getElementById('clear-all-filters')?.addEventListener('click', clearAllFilters);
-}
-
-// Xóa tất cả bộ lọc
 function clearAllFilters() {
-    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+    document.querySelectorAll('.filter-sidebar input[type="checkbox"]').forEach(checkbox => {
         checkbox.checked = false;
     });
     
@@ -248,27 +467,24 @@ function clearAllFilters() {
         activeCheckbox.checked = true;
     }
     
-    // Áp dụng lại
-    applyFilters();
+    currentFilters = null;
+    loadProducts(1);
 }
 
-// Khởi tạo
-function initFilters() {    
-    // Đảm bảo checkbox "Còn hàng" được chọn mặc định
-    const activeCheckbox = document.querySelector('input[name="status"][value="active"]');
-    if (activeCheckbox && !activeCheckbox.checked) {
-        activeCheckbox.checked = true;
-    }
-    
-    // Gắn sự kiện cho tất cả checkbox
-    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            applyFilters();
-        });
-    });
-    
-    // Áp dụng bộ lọc ban đầu
-    setTimeout(() => {
-        applyFilters();
-    }, 1000);
+// ========== UTILITY FUNCTIONS ==========
+
+function formatPrice(price) {
+    const numericPrice = Number(price) || 0;
+    if (numericPrice <= 0) return 'Liên hệ';
+    return new Intl.NumberFormat('vi-VN').format(numericPrice) + '₫';
 }
+
+// ========== EXPORT GLOBAL FUNCTIONS ==========
+
+window.ProductManager = {
+    loadProducts,
+    loadProductsWithFilters,
+    applyFilters,
+    clearAllFilters,
+    getCurrentFilters: () => currentFilters
+};

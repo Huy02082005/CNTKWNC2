@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="page-title">Product Detail</title>
-    <link rel="stylesheet" href="/User_FE/css/product_detail.css">
+    <link rel="stylesheet" href="/css/product_detail.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <!-- Breadcrumb -->
     <nav class="breadcrumb">
-        <a href="/User_FE/html/home.html">Trang chủ</a> &gt;
-        <a href="#" id="category-link"></a> &gt;
+        <a href="/html/home.html">Trang chủ</a> &gt;
+        <a href="/html/see_all.html" id="category-link"></a> &gt;
         <span id="product-name"></span>
     </nav>
 
@@ -82,7 +83,7 @@
                 
                 <div class="action-buttons">
                     <button class="btn-add-to-cart" id="add-to-cart-btn">
-                        <i class="cart-icon">🛒</i> Thêm vào giỏ hàng
+                        <i class="fas fa-shopping-cart"></i> Thêm vào giỏ hàng
                     </button>
                     
                     <button class="btn-buy-now" id="buy-now-btn">
@@ -90,14 +91,14 @@
                     </button>
                     
                     <button class="btn-favorite" id="favorite-btn">
-                        <i class="heart-icon">❤️</i> Yêu thích
+                        <i class="fas fa-heart"></i> Yêu thích
                     </button>
                 </div>
             </div>
 
             <!-- Shipping Info -->
             <div class="shipping-info">
-                <h3>🛵 Giao hàng nhanh</h3>
+                <h3><i class="fas fa-shipping-fast"></i> Giao hàng nhanh</h3>
                 <p>Miễn phí vận chuyển cho đơn hàng từ 500.000₫</p>
                 <p>Nhận hàng trong 2-4 ngày làm việc tại Hà Nội & TP.HCM</p>
             </div>
@@ -169,6 +170,9 @@
             <!-- Related products sẽ được thêm bằng JS -->
         </div>
     </section>
-    <script src="/User_FE/js/product-detail/product_detail.js"></script>
+
+    <!-- Thêm các script cần thiết -->
+    <!-- Chỉ load 1 file JS chính -->
+    <script src="/js/product-detail/product_detail.js"></script>
 </body>
 </html>
