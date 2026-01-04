@@ -1,557 +1,358 @@
+// ========== CLOTHES PAGE DATA HANDLER ==========
+// File: /User_FE/js/clothes.js
+// CHỈ xử lý dữ liệu - BÊ NGUYÊN FILTER SYSTEM
+
 document.addEventListener('DOMContentLoaded', function() {
-    // ===== KHỞI TẠO BIẾN =====
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const filterCheckboxes = document.querySelectorAll('input[type="checkbox"]');
-    const resetFilterBtn = document.getElementById('reset-filter');
-    const applyFilterBtn = document.getElementById('apply-filter');
-    const cartCount = document.querySelector('.cart-count');
-    const searchBox = document.querySelector('.search-box input');
-    const searchBtn = document.querySelector('.search-box button');
-    const dropdowns = document.querySelectorAll('.dropdown');
+    console.log('👕 Clothes page loaded - Using see_all filter system');
     
-    let cartItemCount = 0;
-    let currentProducts = [];
-
-    // ===== KHỞI TẠO DỮ LIỆU =====
-    // Tải sản phẩm từ database (giả lập)
-    function loadProducts() {
-        // Dữ liệu giả lập từ database - chỉ CategoryID 1 và 4
-        currentProducts = [
-            {
-                id: 1,
-                name: "Áo Manchester United 2023-24",
-                price: 499000,
-                image: "./image/áo/aomu.jpg",
-                category: "ao-bong-da",
-                brand: "adidas",
-                club: "premier-league",
-                league: "epl",
-                size: "S",
-                status: "active",
-                onsale: false,
-                stock: 10
-            },
-            {
-                id: 2,
-                name: "Áo Real Madrid 2023-24",
-                price: 499000,
-                image: "./image/áo/real.jpg",
-                category: "ao-bong-da",
-                brand: "adidas",
-                club: "laliga",
-                league: "laliga",
-                size: "M",
-                status: "active",
-                onsale: true,
-                stock: 5
-            },
-            {
-                id: 3,
-                name: "Áo Barcelona 2023-24",
-                price: 499000,
-                image: "./image/áo/aobarca.jpg",
-                category: "ao-bong-da",
-                brand: "adidas",
-                club: "laliga",
-                league: "laliga",
-                size: "S,M,L,XL",
-                status: "active",
-                onsale: false,
-                stock: 8
-            },
-            {
-                id: 4,
-                name: "Áo ĐTQG Argentina 2023",
-                price: 499000,
-                image: "./image/áo/argen.webp",
-                category: "ao-bong-da",
-                brand: "puma",
-                club: "doi-tuyen-quoc-gia",
-                league: "đtqg",
-                size: "S,XL",
-                status: "active",
-                onsale: true,
-                stock: 3
-            },
-            {
-                id: 5,
-                name: "Áo ĐTQG Brazil 2023",
-                price: 799000,
-                image: "./image/áo/brazil.jpg",
-                category: "ao-bong-da",
-                brand: "puma",
-                club: "doi-tuyen-quoc-gia",
-                league: "đtqg",
-                size: "XL",
-                status: "active",
-                onsale: false,
-                stock: 7
-            },
-            {
-                id: 6,
-                name: "Áo Arsenal 2023-24",
-                price: 550000,
-                image: "./image/áo/arsenal.jpg",
-                category: "ao-bong-da",
-                brand: "adidas",
-                club: "premier-league",
-                league: "epl",
-                size: "M,L",
-                status: "active",
-                onsale: true,
-                stock: 12
-            },
-            {
-                id: 7,
-                name: "Áo Bayern Munich 2023-24",
-                price: 650000,
-                image: "./image/áo/bayern.jpg",
-                category: "ao-bong-da",
-                brand: "adidas",
-                club: "bundesliga",
-                league: "bundesliga",
-                size: "L,XL",
-                status: "active",
-                onsale: false,
-                stock: 4
-            },
-            {
-                id: 8,
-                name: "Quần thể thao Nike",
-                price: 350000,
-                image: "./image/quần/quannike.jpg",
-                category: "quan-bong-da",
-                brand: "nike",
-                club: "",
-                league: "all",
-                size: "M,L,XL",
-                status: "active",
-                onsale: true,
-                stock: 15
-            }
-        ];
-
-        displayProducts(currentProducts);
+    // Khởi tạo Pagination
+    if (window.Pagination) {
+        Pagination.initPagination();
+        Pagination.setCallback(loadPage);
+        console.log('✅ Pagination initialized');
     }
+    
+    // BÊ NGUYÊN: Khởi tạo bộ lọc (sẽ sửa sau cho clothes)
+    initFilters();
+    
+    // Tải sản phẩm đầu tiên với filter mặc định
+    applyClothesDefaultFilter();
+});
 
-    // ===== HIỂN THỊ SẢN PHẨM =====
-    function displayProducts(products) {
-        const productGrid = document.getElementById('product-grid');
-        productGrid.innerHTML = '';
+// ========== GLOBAL DATA ==========
+let currentFilters = null;
 
-        if (products.length === 0) {
-            const noProductMsg = document.createElement('div');
-            noProductMsg.className = 'no-products-message';
-            noProductMsg.textContent = 'Không tìm thấy sản phẩm phù hợp';
-            productGrid.appendChild(noProductMsg);
-            return;
-        }
+// ========== BÊ NGUYÊN FILTER SYSTEM FROM see_all.js ==========
+// Map giá trị checkbox sang giá trị trong database
+const CATEGORY_MAP = {
+    'ao-bong-da': 'Áo đấu',
+    'giay-bong-da': 'Giày bóng đá', 
+    'phu-kien': 'Phụ kiện',
+    'ao-khoac': 'Áo khoác thể thao',
+    'gang-tay': 'Găng tay thủ môn'
+};
 
-        products.forEach(product => {
-            const productCard = document.createElement('div');
-            productCard.className = 'product-card';
-            productCard.dataset.id = product.id;
-            productCard.dataset.price = product.price;
-            productCard.dataset.category = product.category;
-            productCard.dataset.brand = product.brand;
-            productCard.dataset.club = product.club;
-            productCard.dataset.league = product.league;
-            productCard.dataset.size = product.size;
-            productCard.dataset.status = product.status;
-            productCard.dataset.onsale = product.onsale;
-            productCard.dataset.stock = product.stock;
+const BRAND_MAP = {
+    'nike': 'Nike',
+    'adidas': 'Adidas',
+    'puma': 'Puma',
+    'mizuno': 'Mizuno',
+    'new-balance': 'New Balance'
+};
 
-            const onsaleBadge = product.onsale ? '<span class="onsale-badge">SALE</span>' : '';
-            const stockStatus = product.stock > 0 ? 
-                `<span class="stock-in">Còn ${product.stock} sản phẩm</span>` : 
-                '<span class="stock-out">Hết hàng</span>';
+const LEAGUE_MAP = {
+    'premier-league': 'Premier League',
+    'la-liga': 'La Liga',
+    'serie-a': 'Serie A',
+    'bundesliga': 'Bundesliga',
+    'ligue-1': 'Ligue 1',
+    'v-league': 'V-League',
+    'doi-tuyen-quoc-gia': 'NATIONAL'
+};
 
-            productCard.innerHTML = `
-                <div class="image-holder">
-                    ${onsaleBadge}
-                    <img src="${product.image}" alt="${product.name}" onerror="this.src='./image/default-product.jpg'">
-                </div>
-                <h3>${product.name}</h3>
-                <p class="price">
-                    ${product.price.toLocaleString('vi-VN')}₫
-                    ${product.onsale ? '<span class="original-price">650.000₫</span>' : ''}
-                </p>
-                <div class="product-info">
-                    <span class="size-info">Size: ${product.size}</span>
-                    ${stockStatus}
-                </div>
-                <button class="add-to-cart" ${product.stock === 0 ? 'disabled' : ''}>
-                    ${product.stock === 0 ? 'Hết hàng' : 'Thêm vào giỏ'}
-                </button>
-            `;
-
-            productGrid.appendChild(productCard);
-        });
-
-        // Thêm sự kiện cho nút thêm vào giỏ hàng
-        addCartEventListeners();
-    }
-
-    // ===== HÀM LỌC CHÍNH =====
-    function filterProducts() {
-        if (!currentProducts.length) return;
-
-        // Lấy tất cả tiêu chí lọc
-        const checkedPrices = getCheckedValues('price');
-        const checkedCategories = getCheckedValues('category');
-        const checkedBrands = getCheckedValues('brand');
-        const checkedClubs = getCheckedValues('club');
-        const checkedSizes = getCheckedValues('size');
-        const checkedStatus = getCheckedValues('status');
-        
-        // Lấy league đang active
-        const activeTab = document.querySelector('.tab-btn.active');
-        const selectedLeague = activeTab ? activeTab.dataset.league : 'all';
-
-        // Lọc sản phẩm
-        const filteredProducts = currentProducts.filter(product => {
-            let match = true;
-
-            // Lọc theo giải đấu (tab)
-            if (selectedLeague !== 'all') {
-                match = product.league === selectedLeague;
-            }
-
-            // Lọc theo giá
-            if (match && checkedPrices.length > 0) {
-                match = checkedPrices.some(range => {
-                    if (range === "duoi500") return product.price < 500000;
-                    if (range === "500-1000") return product.price >= 500000 && product.price <= 1000000;
-                    if (range === "tren1000") return product.price > 1000000;
-                    return false;
-                });
-            }
-
-            // Lọc theo loại sản phẩm
-            if (match && checkedCategories.length > 0) {
-                match = checkedCategories.includes(product.category);
-            }
-
-            // Lọc theo thương hiệu
-            if (match && checkedBrands.length > 0) {
-                match = checkedBrands.includes(product.brand);
-            }
-
-            // Lọc theo CLB/Giải đấu
-            if (match && checkedClubs.length > 0) {
-                match = checkedClubs.includes(product.club);
-            }
-
-            // Lọc theo kích cỡ
-            if (match && checkedSizes.length > 0) {
-                const productSizes = product.size.split(',').map(s => s.trim());
-                match = checkedSizes.some(size => productSizes.includes(size.toUpperCase()));
-            }
-
-            // Lọc theo trạng thái
-            if (match && checkedStatus.length > 0) {
-                match = checkedStatus.some(status => {
-                    if (status === 'active') return product.status === 'active';
-                    if (status === 'onsale') return product.onsale === true;
-                    return false;
-                });
-            }
-
-            return match;
-        });
-
-        // Hiển thị sản phẩm đã lọc
-        displayProducts(filteredProducts);
-    }
-
-    // ===== HÀM HỖ TRỢ =====
-    function getCheckedValues(name) {
-        return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(el => el.value);
-    }
-
-    function addCartEventListeners() {
-        const addToCartButtons = document.querySelectorAll('.add-to-cart:not(:disabled)');
-        
-        addToCartButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const productCard = this.closest('.product-card');
-                const productId = productCard.dataset.id;
-                const productName = productCard.querySelector('h3').textContent;
-                const productPrice = productCard.dataset.price;
-                
-                // Thêm vào giỏ hàng
-                addToCart(productId, productName, productPrice);
-                
-                // Hiệu ứng thêm vào giỏ
-                this.textContent = 'Đã thêm ✓';
-                this.style.backgroundColor = '#28a745';
-                
-                setTimeout(() => {
-                    this.textContent = 'Thêm vào giỏ';
-                    this.style.backgroundColor = '';
-                }, 1500);
-            });
-        });
-    }
-
-    function addToCart(productId, productName, productPrice) {
-        cartItemCount++;
-        cartCount.textContent = cartItemCount;
-        cartCount.classList.add('pulse');
-        
-        // Lưu vào localStorage
-        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        const existingItem = cart.find(item => item.id === productId);
-        
-        if (existingItem) {
-            existingItem.quantity++;
+// ========== MODIFY: CLOTHES-SPECIFIC FILTER INIT ==========
+function initFilters() {    
+    console.log('🔧 Initializing CLOTHES filters...');
+    
+    // 1. FORCE: Chỉ enable và check 2 category clothes
+    document.querySelectorAll('input[name="category"]').forEach(checkbox => {
+        if (checkbox.value === 'ao-bong-da' || checkbox.value === 'ao-khoac') {
+            checkbox.disabled = false;
+            checkbox.checked = true; // Check cả 2 mặc định
+            console.log(`✅ Enabled clothes category: ${checkbox.value}`);
         } else {
-            cart.push({
-                id: productId,
-                name: productName,
-                price: parseInt(productPrice),
-                quantity: 1
-            });
+            checkbox.disabled = true;
+            checkbox.checked = false;
+            checkbox.parentElement.style.opacity = '0.5';
+        }
+    });
+    
+    // 2. Đảm bảo checkbox "Còn hàng" được chọn mặc định (BÊ NGUYÊN)
+    const activeCheckbox = document.querySelector('input[name="status"][value="active"]');
+    if (activeCheckbox && !activeCheckbox.checked) {
+        activeCheckbox.checked = true;
+    }
+    
+    // 3. Gắn sự kiện cho tất cả checkbox (BÊ NGUYÊN)
+    document.querySelectorAll('.filter-sidebar input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            applyFilters(); // Gọi hàm gốc từ see_all.js
+        });
+    });
+    
+    console.log('✅ Clothes filters initialized');
+}
+
+// ========== BÊ NGUYÊN: COLLECT FILTERS ==========
+function collectFilters() {
+    const filters = {
+        prices: [],
+        categories: [],
+        brands: [],
+        leagues: [],
+        status: []
+    };
+    
+    document.querySelectorAll('input[name="price"]:checked').forEach(cb => {
+        filters.prices.push(cb.value);
+    });
+    
+    document.querySelectorAll('input[name="category"]:checked').forEach(cb => {
+        filters.categories.push(CATEGORY_MAP[cb.value] || cb.value);
+    });
+    
+    document.querySelectorAll('input[name="brand"]:checked').forEach(cb => {
+        filters.brands.push(BRAND_MAP[cb.value] || cb.value);
+    });
+    
+    document.querySelectorAll('input[name="league"]:checked').forEach(cb => {
+        filters.leagues.push(LEAGUE_MAP[cb.value] || cb.value);
+    });
+    
+    document.querySelectorAll('input[name="status"]:checked').forEach(cb => {
+        filters.status.push(cb.value);
+    });
+    
+    return filters;
+}
+
+// ========== MODIFY: CLOTHES DEFAULT FILTER ==========
+function applyClothesDefaultFilter() {
+    console.log('🔘 Applying default CLOTHES filter...');
+    
+    // Force categories cho clothes page
+    const filters = collectFilters();
+    
+    // Đảm bảo luôn có ít nhất 1 category clothes
+    const hasClothesCategory = filters.categories.some(cat => 
+        cat === 'Áo đấu' || cat === 'Áo khoác thể thao'
+    );
+    
+    if (!hasClothesCategory) {
+        console.warn('⚠️ No clothes category, forcing both...');
+        filters.categories = ['Áo đấu', 'Áo khoác thể thao'];
+    }
+    
+    // Gọi hàm gốc
+    applyFiltersWithData(filters);
+}
+
+// ========== BÊ NGUYÊN: APPLY FILTERS ==========
+function applyFilters() {
+    console.log('🔘 Áp dụng bộ lọc...');
+    
+    // Thu thập filter
+    const filters = collectFilters();
+    
+    // Kiểm tra có filter nào không
+    const hasAnyFilter = Object.values(filters).some(arr => arr.length > 0);
+    
+    if (hasAnyFilter) {
+        console.log('✅ Có filter, gọi API filter...');
+        currentFilters = filters;
+        loadProductsWithFilters(filters, 1);
+    } else {
+        console.log('✅ Không có filter, tải tất cả sản phẩm');
+        currentFilters = null;
+        loadProducts(1);
+    }
+}
+
+// ========== MODIFY: APPLY FILTERS WITH DATA ==========
+function applyFiltersWithData(filters) {
+    console.log('🔘 Applying filters with data...', filters);
+    
+    // Kiểm tra có filter nào không
+    const hasAnyFilter = Object.values(filters).some(arr => arr.length > 0);
+    
+    if (hasAnyFilter) {
+        console.log('✅ Có filter, gọi API filter...');
+        currentFilters = filters;
+        loadProductsWithFilters(filters, 1);
+    } else {
+        console.log('✅ Không có filter, tải tất cả sản phẩm');
+        currentFilters = null;
+        loadProducts(1);
+    }
+}
+
+// ========== BÊ NGUYÊN: LOAD PRODUCTS WITH FILTERS ==========
+async function loadProductsWithFilters(filters, page = 1) {
+    try {
+        // Tạo query string
+        const queryParams = new URLSearchParams();
+        queryParams.append('page', page);
+        queryParams.append('limit', window.Pagination?.getProductsPerPage() || 16);
+        
+        // Thêm filters
+        if (filters.prices && filters.prices.length > 0) 
+            queryParams.append('prices', filters.prices.join(','));
+        if (filters.categories && filters.categories.length > 0) 
+            queryParams.append('categories', filters.categories.join(','));
+        if (filters.brands && filters.brands.length > 0) 
+            queryParams.append('brands', filters.brands.join(','));
+        if (filters.leagues && filters.leagues.length > 0) 
+            queryParams.append('leagues', filters.leagues.join(','));
+        if (filters.status && filters.status.length > 0) 
+            queryParams.append('status', filters.status.join(','));
+        
+        const url = `/api/products/filtered?${queryParams.toString()}`;
+        console.log('🌐 Gọi API filter:', url);
+        
+        // Hiển thị loading
+        showLoading(true);
+        
+        // Gọi API
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`Filter API trả về lỗi ${response.status}`);
         }
         
-        localStorage.setItem('cart', JSON.stringify(cart));
+        const data = await response.json();
         
-        setTimeout(() => {
-            cartCount.classList.remove('pulse');
-        }, 300);
+        if (!data.success) {
+            throw new Error(data.message || 'Filter không thành công');
+        }
         
-        // Hiển thị thông báo
-        showNotification(`Đã thêm "${productName}" vào giỏ hàng`);
-    }
-
-    function showNotification(message) {
-        // Xóa thông báo cũ nếu có
-        const oldNotification = document.querySelector('.notification');
-        if (oldNotification) oldNotification.remove();
-        
-        // Tạo thông báo mới
-        const notification = document.createElement('div');
-        notification.className = 'notification';
-        notification.textContent = message;
-        
-        // Style cho thông báo
-        notification.style.cssText = `
-            position: fixed;
-            top: 100px;
-            right: 20px;
-            background: #28a745;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 5px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 9999;
-            animation: slideIn 0.3s ease;
-            max-width: 300px;
-        `;
-        
-        document.body.appendChild(notification);
-        
-        // Tự động ẩn sau 3 giây
-        setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
-    }
-
-    function resetFilters() {
-        // Reset tab về "Tất cả"
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        const allTab = document.querySelector('.tab-btn[data-league="all"]');
-        if (allTab) allTab.classList.add('active');
-        
-        // Reset tất cả checkbox
-        filterCheckboxes.forEach(cb => cb.checked = false);
-        
-        // Check lại mặc định
-        const activeStatus = document.querySelector('input[name="status"][value="active"]');
-        if (activeStatus) activeStatus.checked = true;
-        
-        // Lọc lại
-        filterProducts();
-        
-        showNotification('Đã xóa tất cả bộ lọc');
-    }
-
-    // ===== SỰ KIỆN =====
-    // Sự kiện cho tab
-    tabButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Cập nhật URL với league mới
-            const league = this.dataset.league;
-            const url = new URL(window.location);
-            url.searchParams.set('league', league);
-            window.history.pushState({}, '', url);
-            
-            filterProducts();
-        });
-    });
-
-    // Sự kiện cho checkbox
-    filterCheckboxes.forEach(cb => {
-        cb.addEventListener("change", filterProducts);
-    });
-
-    // Sự kiện cho nút reset
-    if (resetFilterBtn) {
-        resetFilterBtn.addEventListener('click', resetFilters);
-    }
-
-    // Sự kiện cho nút apply (không cần thiết vì đã tự động lọc)
-    if (applyFilterBtn) {
-        applyFilterBtn.addEventListener('click', () => {
-            filterProducts();
-            showNotification('Đã áp dụng bộ lọc');
-        });
-    }
-
-    // Sự kiện tìm kiếm
-    if (searchBox && searchBtn) {
-        function performSearch() {
-            const searchTerm = searchBox.value.toLowerCase().trim();
-            
-            if (searchTerm === '') {
-                filterProducts();
-                return;
-            }
-            
-            const filteredProducts = currentProducts.filter(product => 
-                product.name.toLowerCase().includes(searchTerm) ||
-                product.brand.toLowerCase().includes(searchTerm) ||
-                product.club.toLowerCase().includes(searchTerm)
+        // Cập nhật phân trang
+        if (window.Pagination) {
+            window.Pagination.updatePaginationInfo(
+                data.total || 0,
+                data.totalPages || 1
             );
             
-            displayProducts(filteredProducts);
+            // Tạo phân trang controls
+            window.Pagination.createPaginationControls();
+        }
+        
+        // Hiển thị sản phẩm
+        displayProducts(data.products || []);
+        
+    } catch (error) {
+        console.error('❌ Filter error:', error);
+        showError(error);
+    }
+}
+
+// ========== BÊ NGUYÊN: LOAD PRODUCTS ==========
+async function loadProducts(page = 1) {
+    try {
+        console.log(`📡 Loading page ${page}...`);
+        
+        // Hiển thị loading
+        showLoading();
+        
+        // Gọi API
+        const response = await fetch(
+            `/api/products?page=${page}&limit=${window.Pagination?.getProductsPerPage() || 16}`
+        );
+        
+        if (!response.ok) {
+            throw new Error(`API error ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.message || 'API failed');
+        }
+        
+        if (!data.products || !Array.isArray(data.products)) {
+            throw new Error('No products');
+        }
+        
+        // Cập nhật phân trang
+        if (window.Pagination) {
+            window.Pagination.updatePaginationInfo(
+                data.pagination?.total || 0,
+                data.pagination?.totalPages || 1
+            );
             
-            if (filteredProducts.length === 0) {
-                showNotification(`Không tìm thấy sản phẩm cho từ khóa "${searchTerm}"`);
-            }
+            // Tạo phân trang controls
+            window.Pagination.createPaginationControls();
         }
         
-        searchBtn.addEventListener('click', performSearch);
-        searchBox.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') performSearch();
-        });
+        // Hiển thị sản phẩm
+        displayProducts(data.products);
+        
+    } catch (error) {
+        console.error('❌ Error loading products:', error);
+        showError(error);
     }
+}
 
-    // Dropdown menu
-    dropdowns.forEach(dropdown => {
-        dropdown.addEventListener('mouseenter', function() {
-            this.querySelector('.dropdown-menu').style.display = 'flex';
-        });
-        
-        dropdown.addEventListener('mouseleave', function() {
-            this.querySelector('.dropdown-menu').style.display = 'none';
-        });
-    });
+// ========== BÊ NGUYÊN: DISPLAY FUNCTIONS ==========
+function showLoading(isFiltering = false) {
+    const productGrid = document.querySelector('.product-grid');
+    if (!productGrid) return;
+    
+    productGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 50px;">
+            <div style="display: inline-block; padding: 20px; background: #f5f5f5; border-radius: 10px;">
+                <p style="margin-bottom: 10px; color: #666;">
+                    ${isFiltering ? '🔄 Đang lọc' : '🔄 Đang tải'} sản phẩm...
+                </p>
+                <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #1a3e72; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+            </div>
+        </div>
+    `;
+}
 
-    // Ngăn chặn scroll ngang
-    document.addEventListener('touchmove', function(e) {
-        if (e.touches.length > 1) {
-            e.preventDefault();
+function displayProducts(products) {
+    if (window.ProductDisplay && typeof window.ProductDisplay === 'function') {
+        const productGrid = document.querySelector('.product-grid');
+        if (productGrid) {
+            const display = new window.ProductDisplay({
+                container: productGrid,
+                products: products,
+                columns: 4,
+                showQuickAdd: true,
+                showDiscount: true,
+                showStock: true,
+                clickable: true
+            });
+            display.render();
         }
-    }, { passive: false });
-
-    document.addEventListener('gesturestart', function(e) {
-        e.preventDefault();
-    });
-
-    window.addEventListener('scroll', function() {
-        if (window.scrollX !== 0) {
-            window.scrollTo(0, window.scrollY);
-        }
-    });
-
-    window.addEventListener('wheel', function(e) {
-        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-            e.preventDefault();
-        }
-    }, { passive: false });
-
-    // Kiểm tra league từ URL khi load trang
-    function checkURLParams() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const leagueFromURL = urlParams.get('league');
-        
-        if (leagueFromURL) {
-            const targetTab = document.querySelector(`.tab-btn[data-league="${leagueFromURL}"]`);
-            if (targetTab && !targetTab.classList.contains('active')) {
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                targetTab.classList.add('active');
-            }
-        }
+    } else {
+        console.error('❌ ProductDisplay not available');
     }
+}
 
-    // ===== KHỞI CHẠY =====
-    function init() {
-        checkURLParams();
-        loadProducts();
-        
-        // Khôi phục giỏ hàng từ localStorage
-        const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
-        cartItemCount = savedCart.reduce((total, item) => total + item.quantity, 0);
-        cartCount.textContent = cartItemCount;
-        
-        // Thêm CSS animation cho notification
-        if (!document.querySelector('#notification-styles')) {
-            const style = document.createElement('style');
-            style.id = 'notification-styles';
-            style.textContent = `
-                @keyframes slideIn {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-                @keyframes slideOut {
-                    from { transform: translateX(0); opacity: 1; }
-                    to { transform: translateX(100%); opacity: 0; }
-                }
-                .onsale-badge {
-                    position: absolute;
-                    top: 10px;
-                    right: 10px;
-                    background: #dc3545;
-                    color: white;
-                    padding: 3px 8px;
-                    border-radius: 3px;
-                    font-size: 12px;
-                    font-weight: bold;
-                }
-                .stock-in {
-                    color: #28a745;
-                    font-size: 12px;
-                }
-                .stock-out {
-                    color: #dc3545;
-                    font-size: 12px;
-                }
-                .product-info {
-                    padding: 0 10px;
-                    margin-bottom: 10px;
-                    font-size: 12px;
-                    display: flex;
-                    justify-content: space-between;
-                }
-                .original-price {
-                    text-decoration: line-through;
-                    color: #999;
-                    font-size: 14px;
-                    margin-left: 8px;
-                }
-                .size-info {
-                    color: #666;
-                }
-            `;
-            document.head.appendChild(style);
-        }
+function showError(error) {
+    const productGrid = document.querySelector('.product-grid');
+    if (productGrid) {
+        productGrid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 50px;">
+                <div style="background: #fff5f5; border: 1px solid #fed7d7; border-radius: 10px; padding: 30px; max-width: 500px; margin: 0 auto;">
+                    <h3 style="color: #e53e3e; margin-bottom: 15px;">⚠️ Lỗi hệ thống</h3>
+                    <p style="color: #666; margin-bottom: 10px;">${error.message || 'Lỗi không xác định'}</p>
+                    <div style="margin-top: 20px;">
+                        <button onclick="applyClothesDefaultFilter()" style="padding: 10px 20px; background: #1a3e72; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            🔄 Thử lại
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
     }
+}
 
-    // Khởi chạy ứng dụng
-    init();
-});
+// ========== PAGINATION HANDLER ==========
+async function loadPage(page) {
+    console.log('📄 Loading page:', page);
+    
+    if (currentFilters) {
+        await loadProductsWithFilters(currentFilters, page);
+    } else {
+        await loadProducts(page);
+    }
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ========== DATA EXPORTS ==========
+window.ClothesData = {
+    applyFilters: applyClothesDefaultFilter,
+    getCurrentFilters: () => currentFilters
+};

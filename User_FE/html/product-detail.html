@@ -11,7 +11,7 @@
     <!-- Breadcrumb -->
     <nav class="breadcrumb">
         <a href="/html/home.html">Trang chủ</a> &gt;
-        <a href="/html/see_all.html" id="category-link"></a> &gt;
+        <a href="#" id="category-link">Sản phẩm</a> &gt;
         <span id="product-name"></span>
     </nav>
 
@@ -62,14 +62,27 @@
                 </div>
             </div>
 
-            <!-- Size Selection -->
-            <div class="size-selection" id="size-section" style="display: none;">
-                <h3>Chọn size:</h3>
+            <!-- ========== SIZE SELECTION - ĐÃ SỬA ========== -->
+            <!-- XÓA style="display: none;" -->
+            <div class="size-selection" id="size-section">
+                <h3><i class="fas fa-ruler"></i> Chọn size:</h3>
                 <div class="size-options" id="size-options">
                     <!-- Sizes sẽ được thêm bằng JS -->
+                    <div class="size-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Đang tải size...
+                    </div>
                 </div>
-                <div class="size-guide">
-                    <a href="/size-guide">Hướng dẫn chọn size</a>
+                
+                <!-- Size warning message -->
+                <div class="size-warning" id="size-warning">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="size-warning-text"></span>
+                </div>
+                
+                <!-- Selected size indicator -->
+                <div class="size-selected" id="size-selected">
+                    <i class="fas fa-check-circle"></i>
+                    Đã chọn size: <span id="selected-size-text"></span>
                 </div>
             </div>
 
@@ -87,11 +100,7 @@
                     </button>
                     
                     <button class="btn-buy-now" id="buy-now-btn">
-                        Mua ngay
-                    </button>
-                    
-                    <button class="btn-favorite" id="favorite-btn">
-                        <i class="fas fa-heart"></i> Yêu thích
+                        <i class="fas fa-bolt"></i> Mua ngay
                     </button>
                 </div>
             </div>
@@ -120,16 +129,9 @@
                 <p id="product-description"></p>
                 
                 <h4>Đặc điểm nổi bật:</h4>
-                <ul>
-                    <li>Chất liệu: Vải polyester cao cấp, thoáng khí</li>
-                    <li>In logo và họa tiết bằng công nghệ nhiệt chống phai</li>
-                    <li>Form áo chuẩn, thoải mái khi vận động</li>
-                    <li>Phù hợp: Đá bóng, tập luyện, cổ vũ</li>
+                <ul id="product-features">
+                    <!-- Features sẽ được thêm bằng JS -->
                 </ul>
-                
-                <div class="product-images-detail">
-                    <img id="detail-img" alt="Chi tiết sản phẩm">
-                </div>
             </div>
             
             <div id="specs" class="tab-pane">
@@ -164,15 +166,69 @@
     </div>
 
     <!-- Related Products -->
-    <section class="related-products" id="related-section" style="display: none;">
-        <h2>Sản phẩm liên quan</h2>
-        <div class="product-grid" id="related-products">
+    <section class="related-products" id="related-section">
+        <div class="related-header">
+            <h2><i class="fas fa-fire"></i> Sản phẩm liên quan</h2>
+            <p class="related-subtitle">Những sản phẩm cùng danh mục bạn có thể thích</p>
+        </div>
+        <div class="related-products-grid" id="related-products">
             <!-- Related products sẽ được thêm bằng JS -->
+            <div class="related-products-loading">
+                <div class="spinner"></div>
+                <p>Đang tải sản phẩm liên quan...</p>
+            </div>
         </div>
     </section>
 
+    <!-- Giỏ hàng Floating Button -->
+<div class="cart-floating-btn" id="cart-floating-btn">
+    <i class="fas fa-shopping-cart"></i>
+    <span class="cart-floating-count" id="cart-floating-count">0</span>
+</div>
+
+<!-- Mini Cart Popup -->
+<div class="mini-cart-popup" id="mini-cart-popup">
+    <div class="mini-cart-header">
+        <h3><i class="fas fa-shopping-cart"></i> Giỏ hàng của bạn</h3>
+        <button class="close-mini-cart" id="close-mini-cart">&times;</button>
+    </div>
+    
+    <div class="mini-cart-items" id="mini-cart-items">
+        <!-- Cart items sẽ được thêm bằng JS -->
+        <div class="mini-cart-empty">
+            <i class="fas fa-shopping-cart"></i>
+            <p>Giỏ hàng trống</p>
+        </div>
+    </div>
+    
+    <div class="mini-cart-footer">
+        <div class="mini-cart-total">
+            <span>Tổng tiền:</span>
+            <span class="mini-cart-total-amount" id="mini-cart-total">0₫</span>
+        </div>
+        <div class="mini-cart-actions">
+            <button class="btn-view-cart" onclick="window.location.href='/html/cart.html'">
+                <i class="fas fa-eye"></i> Xem giỏ hàng
+            </button>
+            <button class="btn-checkout" onclick="window.location.href='/html/checkout.html'">
+                <i class="fas fa-credit-card"></i> Thanh toán
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Cart Notification -->
+<div class="cart-notification" id="cart-notification">
+    <div class="cart-notification-icon">
+        <i class="fas fa-check-circle"></i>
+    </div>
+    <div class="cart-notification-content">
+        <div class="cart-notification-title">Đã thêm vào giỏ hàng</div>
+        <div class="cart-notification-message" id="cart-notification-message"></div>
+    </div>
+    <button class="cart-notification-close" id="cart-notification-close">&times;</button>
+</div>
     <!-- Thêm các script cần thiết -->
-    <!-- Chỉ load 1 file JS chính -->
     <script src="/js/product-detail/product_detail.js"></script>
 </body>
 </html>

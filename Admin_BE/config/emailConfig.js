@@ -14,8 +14,8 @@ const transporter = nodemailer.createTransport({
 const gmailTransporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'your_email@gmail.com',
-        pass: 'your_app_password' // Dùng App Password, không dùng mật khẩu chính
+        user: 'gmptuilwzrhhsvecpk@nespj.com',
+        pass: '111111' // Dùng App Password, không dùng mật khẩu chính
     }
 });
 

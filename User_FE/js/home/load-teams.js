@@ -104,127 +104,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const fileName = leagueImageMap[leagueId] || 'default-league.jpg';
         return `${IMAGE_BASE_PATH}/league/${fileName}`;
     }
-    
-    // 4. Hàm load ảnh đội tuyển từ database
-    async function loadNationalTeamImages() {      
-    const nationalSection = document.querySelector('#national .category-grid');
-    if (!nationalSection) {
-        console.error('❌ Không tìm thấy phần giải đấu quốc tế');
-        return;
-    }
-    
-    showLoading(nationalSection, 'national');
-    
-    try {
-        // Gọi API để lấy các giải đấu với type = 'national'
-        const response = await fetchWithTimeout(`${API_BASE_URL}/products`, {
-            timeout: 5000
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            console.log('📊 Dữ liệu từ API:', data);
-            
-            if (data.success && data.products && data.products.length > 0) {
-                // Filter các giải đấu có Type = 'national' (các giải đấu quốc tế)
-                const nationalTournaments = data.products.filter(product => {
-                    const type = product.Type || '';
-                    return type.toLowerCase() === 'national';
-                });
-                
-                console.log(`🔍 Tìm thấy ${nationalTournaments.length} giải đấu quốc tế (type=national)`);
-                
-                if (nationalTournaments.length > 0) {
-                    displayInternationalTournamentsFromDB(nationalTournaments, nationalSection);
-                    return;
-                } else {
-                    console.log('⚠️ Không có giải đấu nào với type=national');
-                }
-            }
-        }
-    } catch (error) {
-        console.warn('⚠️ Không thể lấy dữ liệu từ API:', error.message);
-    }
-    
-    // Fallback: Dùng ảnh mẫu
-    console.log('🔄 Sử dụng mock data cho giải đấu quốc tế');
-    useInternationalMockData(nationalSection);
-}
-
-// 5. Hàm hiển thị giải đấu quốc tế từ database
-function displayInternationalTournamentsFromDB(products, container) {
-    console.log('🎯 Hiển thị giải đấu quốc tế từ DB, số lượng:', products.length);
-    container.innerHTML = '';
-    
-    // Nhóm theo giải đấu quốc tế (dựa vào LeagueID và LeagueName)
-    const tournamentMap = new Map();
-    
-    products.forEach(product => {
-        const leagueId = product.LeagueID;
-        const leagueName = product.LeagueName;
-        
-        console.log(`Giải đấu: ID=${leagueId}, Name="${leagueName}", Type="${product.Type}"`);
-        
-        if (leagueId && leagueName && !tournamentMap.has(leagueId)) {
-            tournamentMap.set(leagueId, {
-                id: leagueId,
-                name: leagueName,
-                image: getInternationalTournamentImage(leagueName),
-                country: product.Country || '',
-                type: 'national'
-            });
-        }
-    });
-    
-    console.log('📋 Danh sách giải đấu đã nhóm:', Array.from(tournamentMap.values()));
-    
-    // Lấy tối đa 6 giải đấu
-    const tournaments = Array.from(tournamentMap.values());
-    
-    if (tournaments.length === 0) {
-        console.log('❌ Không có giải đấu quốc tế nào, dùng mock data');
-        useInternationalMockData(container);
-        return;
-    }
-    
-    console.log(`✅ Hiển thị ${tournaments.length} giải đấu quốc tế`);
-    tournaments.forEach(tournament => {
-        console.log(`Thêm giải đấu: ${tournament.name} - ${tournament.image}`);
-        const card = createNationalCard(tournament);
-        container.appendChild(card);
-    });
-    
-    addNationalClickEvents();
-}
-
-// Hàm lấy đường dẫn ảnh cho giải đấu quốc tế
-function getInternationalTournamentImage(tournamentName) {
-    console.log(`🖼️ Tìm ảnh cho giải đấu: ${tournamentName}`);
-    
-    // Map tên giải đấu sang tên file ảnh
-    const tournamentImageMap = {
-        'copa': 'copa.jpg',
-        'world cup': 'WorldCup.jpg',
-        'euro': 'Euro.jpg',
-    };
-    
-    // Chuẩn hóa tên để so sánh
-    const normalizedName = tournamentName.toLowerCase().trim();
-    let fileName = 'default-tournament.jpg';
-    
-    // Tìm ảnh phù hợp
-    for (const [key, value] of Object.entries(tournamentImageMap)) {
-        if (normalizedName.includes(key)) {
-            fileName = value;
-            console.log(`✅ Tìm thấy ảnh: ${fileName} cho ${tournamentName}`);
-            break;
-        }
-    }
-    
-    const imagePath = `${IMAGE_BASE_PATH}/national/${fileName}`;
-    console.log(`🖼️ Đường dẫn ảnh: ${imagePath}`);
-    return imagePath;
-}
 
     // 6. Dữ liệu mẫu cho giải đấu - SỬA ĐƯỜNG DẪN
     function useLeagueMockData(container) {
@@ -275,41 +154,6 @@ function getInternationalTournamentImage(tournamentName) {
         addLeagueClickEvents();
     }
     
-    // 7. Dữ liệu mẫu cho đội tuyển - SỬA ĐƯỜNG DẪN
-    function useInternationalMockData(container) {
-    console.log('🔄 Sử dụng mock data cho giải đấu quốc tế');
-    container.innerHTML = '';
-    
-    const mockTournaments = [
-        { 
-            id: 7, 
-            name: 'Copa America', 
-            image: `${IMAGE_BASE_PATH}/national/copa.jpg`,
-            type: 'international'
-        },
-        { 
-            id: 8, 
-            name: 'World Cup', 
-            image: `${IMAGE_BASE_PATH}/national/WorldCup.jpg`,
-            type: 'international'
-        },
-        { 
-            id: 9, 
-            name: 'Euro', 
-            image: `${IMAGE_BASE_PATH}/national/Euro.jpg`,
-            type: 'international'
-        }
-    ];
-    
-    console.log(`📱 Hiển thị ${mockTournaments.length} giải đấu mock`);
-    mockTournaments.forEach(tournament => {
-        const card = createNationalCard(tournament);
-        container.appendChild(card);
-    });
-    
-    addNationalClickEvents();
-}
-    
     // 8. Tạo card giải đấu
 function createLeagueCard(league) {
     const card = document.createElement('div');
@@ -327,31 +171,6 @@ function createLeagueCard(league) {
                 ${league.country ? `<p class="league-country">${league.country}</p>` : ''}
                 <button class="btn-view-league" data-league-id="${league.id}">
                     Xem sản phẩm
-                </button>
-            </div>
-        </div>
-    `;
-    
-    return card;
-}
-    
-    // 9. Tạo card đội tuyển
-   function createNationalCard(tournament) {
-    const card = document.createElement('div');
-    card.className = 'national-card category-card';
-    card.dataset.leagueId = tournament.id;
-    
-    card.innerHTML = `
-        <div class="team-image-container">
-            <img src="${tournament.image}" 
-                 alt="${tournament.name}" 
-                 class="team-logo"
-                 onerror="this.onerror=null; this.src='${getDefaultImage()}'">
-            <div class="team-overlay">
-                <h3>${tournament.name}</h3>
-                ${tournament.country ? `<p class="tournament-country">${tournament.country}</p>` : ''}
-                <button class="btn-view-team" data-league-id="${tournament.id}">
-                    Xem áo đấu
                 </button>
             </div>
         </div>
@@ -381,38 +200,11 @@ function createLeagueCard(league) {
             });
         });
     }
-    
-    // 11. Thêm sự kiện click cho đội tuyển
-    function addNationalClickEvents() {
-    const tournamentCards = document.querySelectorAll('.national-card');
-    tournamentCards.forEach(card => {
-        card.addEventListener('click', function(e) {
-            if (!e.target.classList.contains('btn-view-team')) {
-                const tournamentId = this.dataset.tournamentId;
-                navigateToTournamentPage(tournamentId);
-            }
-        });
-    });
-    
-    const tournamentButtons = document.querySelectorAll('.btn-view-team');
-    tournamentButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const tournamentId = this.dataset.tournamentId;
-            navigateToTournamentPage(tournamentId);
-        });
-    });
-}
 
     // 12. Điều hướng trang
     function navigateToLeaguePage(leagueId) {
         console.log(`👉 Đến trang giải đấu: ${leagueId}`);
-        window.location.href = `../XEM_TAT_CA/xemtatca.html?type=league&id=${leagueId}`;
-    }
-    
-    function navigateToTournamentPage(tournamentId) {
-        console.log(`👉 Đến trang giải đấu quốc tế: ${tournamentId}`);
-        window.location.href = `../XEM_TAT_CA/xemtatca.html?type=national&id=${tournamentId}`;
+        window.location.href = `/html/see_all.html?type=league&id=${leagueId}`;
     }
         
     // 13. Hiển thị loading
@@ -431,7 +223,7 @@ function createLeagueCard(league) {
     
     // 14. Lấy ảnh mặc định - SỬA ĐƯỜNG DẪN
     function getDefaultImage() {
-        return `${IMAGE_BASE_PATH}/default-product.jpg`;
+        return `${IMAGE_BASE_PATH}/default-image.jpg`;
     }
     
     // 15. Fetch với timeout
@@ -486,8 +278,7 @@ function addStyles() {
         }
         
         /* Image container - CHIẾM TOÀN BỘ CARD */
-        .league-image-container,
-        .team-image-container {
+        .league-image-container {
             width: 100%;
             height: 100%; /* Chiếm toàn bộ card */
             position: relative;
@@ -499,8 +290,7 @@ function addStyles() {
         }
         
         /* Logo styles - TỐI ƯU CHO ẢNH LOGO */
-        .league-logo,
-        .team-logo {
+        .league-logo {
             max-width: 85%;
             max-height: 85%;
             width: auto;
@@ -512,8 +302,7 @@ function addStyles() {
         }
         
         /* Overlay styles - HIỂN THỊ THÔNG TIN LUÔN */
-        .league-overlay,
-        .team-overlay {
+        .league-overlay {
             position: absolute;
             bottom: 0;
             left: 0;
@@ -526,8 +315,7 @@ function addStyles() {
         }
         
         /* Tiêu đề trong overlay */
-        .league-overlay h3,
-        .team-overlay h3 {
+        .league-overlay h3 {
             margin: 0 0 5px 0;
             font-size: 1.1em;
             font-weight: 600;
@@ -538,8 +326,7 @@ function addStyles() {
             text-overflow: ellipsis;
         }
         
-        .league-country,
-        .tournament-country {
+        .league-country {
             margin: 0 0 8px 0;
             font-size: 0.85em;
             opacity: 0.9;
@@ -549,8 +336,7 @@ function addStyles() {
         }
         
         /* Button styles */
-        .btn-view-league,
-        .btn-view-team {
+        .btn-view-league {
             background: #4CAF50;
             color: white;
             border: none;
@@ -563,19 +349,16 @@ function addStyles() {
             transform: translateY(10px);
         }
         
-        .category-card:hover .btn-view-league,
-        .category-card:hover .btn-view-team {
+        .category-card:hover .btn-view-league {
             opacity: 1;
             transform: translateY(0);
         }
         
-        .btn-view-league:hover,
-        .btn-view-team:hover {
+        .btn-view-league:hover {
             background: #45a049;
             transform: scale(1.05) translateY(0);
         }
-        
-        /* KHÔNG CÓ .card-info nữa - mọi thứ trong overlay */
+
         
         /* Loading styles */
         .loading-grid {
@@ -658,21 +441,18 @@ function addStyles() {
         if (apiHealthy) {
             console.log('✅ API hoạt động, tải từ database');
             await Promise.all([
-                loadLeagueImages(),
-                loadNationalTeamImages()
+                loadLeagueImages()
             ]);
         } else {
             console.warn('⚠️ API không hoạt động, dùng dữ liệu mẫu');
             
             // Load đồng thời cả hai
             const leagueSection = document.querySelector('#clubs .category-grid');
-            const nationalSection = document.querySelector('#national .category-grid');
             
             if (leagueSection) useLeagueMockData(leagueSection);
-            if (nationalSection) useNationalMockData(nationalSection);
         }
         
-        console.log('✅ Load leagues & teams hoàn tất');
+        console.log('✅ Load leagues hoàn tất');
     }
     
     // 18. Khởi chạy

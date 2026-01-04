@@ -57,10 +57,6 @@ async function initProductDisplay() {
             showDiscount: true,
             showStock: true,
             clickable: true,
-            
-            // Callbacks
-            onProductClick: handleProductClick,
-            onAddToCart: handleAddToCart
         });
         
         console.log('✅ ProductDisplay initialized');
@@ -364,56 +360,6 @@ function collectFilters() {
     });
     
     return filters;
-}
-
-// ========== EVENT HANDLERS ==========
-
-function handleProductClick(productId, event) {
-    console.log(`🛒 Click sản phẩm: ${productId}`);
-    window.location.href = `${this.BASE_URL}/product-detail.html?id=${productId}`;
-}
-
-function handleAddToCart(productId, event) {
-    console.log(`🛒 Thêm vào giỏ: ${productId}`);
-    
-    // Update cart count
-    const cartCount = document.querySelector('.cart-count');
-    if (cartCount) {
-        let count = parseInt(cartCount.textContent) || 0;
-        count++;
-        cartCount.textContent = count;
-        cartCount.classList.add('pulse');
-        setTimeout(() => cartCount.classList.remove('pulse'), 300);
-    }
-    
-    // Show notification
-    showNotification('Đã thêm sản phẩm vào giỏ hàng');
-}
-
-function showNotification(message) {
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #4CAF50;
-        color: white;
-        padding: 15px 20px;
-        border-radius: 5px;
-        z-index: 10000;
-        animation: slideIn 0.3s ease;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        max-width: 300px;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
 }
 
 // ========== UI INITIALIZATION ==========

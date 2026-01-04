@@ -43,7 +43,7 @@ const CustomerAuth = {
         document.cookie = 'customer_data=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         localStorage.removeItem('customer_email');
         localStorage.removeItem('remember_me');
-        window.location.href = '/html/login.html';
+        window.location.href = '/html/home.html';
     },
 
     // Cập nhật thông tin khách hàng trong các trang

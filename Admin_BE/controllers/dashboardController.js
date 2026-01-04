@@ -7,37 +7,12 @@ const dashboardController = {
       const pool = await sql.connect(config);
       const statsResult = await pool.request().query(`
         SELECT 
-          (SELECT COUNT(*) FROM Product) as TotalProducts,
+          (SELECT COUNT(*) FROM Product WHERE Status = 'active') as TotalProducts,
           (SELECT COUNT(*) FROM [Order]) as TotalOrders,
-          (SELECT COUNT(*) FROM Customer) as TotalCustomers,
+          (SELECT COUNT(*) FROM Customer WHERE Status = 1) as TotalCustomers,
           (SELECT ISNULL(SUM(TotalPrice), 0) FROM [Order] WHERE Status = 'completed') as TotalRevenue,
           (SELECT COUNT(*) FROM [Order] WHERE Status = 'pending') as PendingOrders,
-          (SELECT COUNT(*) FROM Product WHERE StockQuantity = 0) as OutOfStockProducts
-      `);
-
-      // Doanh thu theo tháng
-      const revenueResult = await pool.request().query(`
-        SELECT 
-          FORMAT(OrderDate, 'yyyy-MM') as Month,
-          SUM(TotalPrice) as Revenue
-        FROM [Order] 
-        WHERE Status = 'completed'
-        GROUP BY FORMAT(OrderDate, 'yyyy-MM')
-        ORDER BY Month DESC
-      `);
-
-      // Sản phẩm bán chạy
-      const topProductsResult = await pool.request().query(`
-        SELECT TOP 5
-          p.ProductName,
-          SUM(od.Quantity) as TotalSold,
-          SUM(od.Subtotal) as TotalRevenue
-        FROM OrderDetail od
-        JOIN Product p ON od.ProductID = p.ProductID
-        JOIN [Order] o ON od.OrderID = o.OrderID
-        WHERE o.Status = 'completed'
-        GROUP BY p.ProductID, p.ProductName
-        ORDER BY TotalSold DESC
+          (SELECT COUNT(*) FROM Product WHERE StockQuantity = 0 AND Status = 'active') as OutOfStockProducts
       `);
 
       res.json({
@@ -49,15 +24,82 @@ const dashboardController = {
           totalRevenue: statsResult.recordset[0].TotalRevenue,
           pendingOrders: statsResult.recordset[0].PendingOrders,
           outOfStockProducts: statsResult.recordset[0].OutOfStockProducts
-        },
-        monthlyRevenue: revenueResult.recordset,
-        topProducts: topProductsResult.recordset
+        }
       });
     } catch (err) {
       console.error(err);
       res.status(500).json({ 
         success: false, 
         message: "Lỗi server khi lấy thống kê dashboard" 
+      });
+    }
+  },
+
+  // THÊM METHOD NÀY - Lấy đơn hàng gần đây
+  getRecentOrders: async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit) || 5;
+      const pool = await sql.connect(config);
+      
+      const result = await pool.request().query(`
+        SELECT TOP (${limit})
+          o.OrderID,
+          o.OrderDate,
+          o.TotalPrice,
+          o.Status,
+          c.FullName,
+          c.Email,
+          c.Phone,
+          c.CustomerID
+        FROM [Order] o
+        LEFT JOIN Customer c ON o.CustomerID = c.CustomerID
+        WHERE c.Status = 1
+        ORDER BY o.OrderDate DESC
+      `);
+
+      res.json({
+        success: true,
+        data: result.recordset,
+        total: result.recordset.length
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ 
+        success: false, 
+        message: "Lỗi server khi lấy đơn hàng gần đây" 
+      });
+    }
+  },
+
+  // THÊM METHOD NÀY - Lấy khách hàng mới
+  getRecentCustomers: async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit) || 3;
+      const pool = await sql.connect(config);
+      
+      const result = await pool.request().query(`
+        SELECT TOP (${limit})
+          CustomerID,
+          FullName,
+          Email,
+          Phone,
+          RegisterDate,
+          Status
+        FROM Customer
+        WHERE Status = 1
+        ORDER BY RegisterDate DESC
+      `);
+
+      res.json({
+        success: true,
+        data: result.recordset,
+        total: result.recordset.length
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ 
+        success: false, 
+        message: "Lỗi server khi lấy khách hàng mới" 
       });
     }
   }

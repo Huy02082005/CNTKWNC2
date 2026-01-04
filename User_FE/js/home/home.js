@@ -1,7 +1,3 @@
-// ========== HOME PAGE LOGIC ==========
-// File: /User_FE/js/home.js
-// Chỉ xử lý logic, không render HTML
-
 const { IS_LIVE_SERVER, BASE_URL } = window.ImageUtils;
 const API_BASE_URL = `${BASE_URL}/api/simple`;
 
@@ -40,8 +36,7 @@ function initHomeProductDisplay(products) {
         console.error('❌ #featured-products not found');
         return;
     }
-    
-    // Initialize ProductDisplay component
+
     const productDisplay = new ProductDisplay({
         container: container,
         products: products,
@@ -49,18 +44,8 @@ function initHomeProductDisplay(products) {
         showQuickAdd: true,
         showDiscount: true,
         showStock: true,
-        clickable: true,
-        
-        // Custom event handlers
-        onProductClick: (productId) => {
-            console.log(`👉 Product clicked: ${productId}`);
-            navigateToProductDetail(productId);
-        },
-        
-        onAddToCart: (productId) => {
-            console.log(`🛒 Add to cart clicked: ${productId}`);
-            addProductToCart(productId);
-        }
+        clickable: true
+        // KHÔNG truyền callbacks - để dùng logic mặc định của ProductDisplay
     });
     
     productDisplay.render();
@@ -95,23 +80,6 @@ function useMockProducts() {
     initHomeProductDisplay(mockProducts);
 }
 
-// ========== CART LOGIC ==========
-
-function addProductToCart(productId) {
-    console.log(`🛒 Adding product ${productId} to cart`);
-    // Your cart logic here
-}
-
-function loadCartCount() {
-    // Your cart count logic
-}
-
-// ========== NAVIGATION ==========
-
-function navigateToProductDetail(productId) {
-    window.location.href = `${BASE_URL}/product-detail.html?id=${productId}`;
-}
-
 // ========== EVENT HANDLERS ==========
 
 function setupHomeEventListeners() {
@@ -119,7 +87,7 @@ function setupHomeEventListeners() {
     const viewMoreBtn = document.querySelector('.btn-view-more');
     if (viewMoreBtn) {
         viewMoreBtn.addEventListener('click', () => {
-            window.location.href = '/User_FE/html/see_all.html';
+            window.location.href = '/html/see_all.html';
         });
     }
     
@@ -144,7 +112,4 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Setup event listeners
     setupHomeEventListeners();
-    
-    // Load cart
-    loadCartCount();
 });

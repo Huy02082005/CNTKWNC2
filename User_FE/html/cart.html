@@ -3,30 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shop Quần Áo Bóng Đá - Đồng Phục Câu Lạc Bộ</title>
-    <link rel="stylesheet" href="/css/product-display.css">
+    <title>Giỏ Hàng - FootballStore</title>
+    <link rel="stylesheet" href="/css/home.css">
     <link rel="stylesheet" href="/css/auth-simple.css">
     <link rel="stylesheet" href="/css/cart-common.css">
-    <link rel="stylesheet" href="/css/see_all.css">
+    <link rel="stylesheet" href="/css/cart.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-      <header>
+    <!-- Header -->
+    <header>
         <div class="header-container">
             <div class="logo">
                 <h1>FOOTBALL<span>STORE</span></h1>
                 <p>Đồng phục bóng đá chính hãng</p>
             </div>
             
-            <!-- Menu navigation -->
             <nav class="main-nav">
                 <ul>
                     <li><a href="/html/home.html">Trang chủ</a></li>
                     <li class="dropdown">
-                        <a href="/html/see_all.html" >Sản phẩm <i class="fas fa-chevron-down"></i></a>
+                        <a href="/html/see_all.html">Sản phẩm <i class="fas fa-chevron-down"></i></a>
                         <div class="dropdown-menu">
                             <div class="dropdown-column">
-                                <a href="#" class="active"><h4>Quần áo</h4></a>
+                                <a href="/html/clothes.html"><h4>Quần áo</h4></a>
                             </div>
                             <div class="dropdown-column">
                                 <a href="/html/shoes.html"><h4>Giày</h4></a>
@@ -44,109 +44,122 @@
                 </ul>
             </nav>
             
-            <!-- Cart + User actions -->
             <div class="header-actions">
                 <div class="cart-module-container">
                     <div class="cart-icon" id="header-cart-icon">
                         <i class="fas fa-shopping-cart"></i>
                         <span class="cart-count">0</span>
                     </div>
+                    <div class="cart-dropdown"></div>
                 </div>
                 <div class="user-actions">
                     <a href="/html/login.html"><i class="fas fa-user"></i></a>
                 </div>
             </div>
         </div>
-            <div class="nav-bar-search">
-                <div class="search-center-container">
-                    <div class="search-box">
-                        <input type="text" placeholder="Tìm kiếm sản phẩm...">
-                        <button><i class="fas fa-search"></i> Tìm kiếm</button>
+    </header>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <div class="container">
+            <a href="/html/home.html">Trang chủ</a> &gt;
+            <span>Giỏ hàng</span>
+        </div>
+    </div>
+
+    <!-- Main Cart Content -->
+    <main class="cart-page">
+        <div class="container">
+            <h1 class="page-title">Giỏ hàng của bạn</h1>
+            
+            <div class="cart-container">
+                <!-- Cart Items -->
+                <div class="cart-items-section">
+                    <div class="cart-header">
+                        <h2>Sản phẩm trong giỏ hàng</h2>
+                        <span class="cart-items-count" id="cart-items-count">0 sản phẩm</span>
+                    </div>
+                    
+                    <div class="cart-items" id="cart-items">
+                        <!-- Cart items sẽ được render bằng JS -->
+                        <div class="cart-empty">
+                            <div class="empty-cart-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h3>Giỏ hàng của bạn đang trống</h3>
+                            <p>Hãy thêm sản phẩm vào giỏ hàng để tiếp tục mua sắm</p>
+                            <a href="/html/see_all.html" class="btn btn-primary">
+                                <i class="fas fa-shopping-bag"></i> Tiếp tục mua sắm
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Order Summary -->
+                <div class="order-summary-section">
+                    <div class="order-summary">
+                        <h2>Tóm tắt đơn hàng</h2>
+                        
+                        <div class="summary-details">
+                            <div class="summary-row">
+                                <span>Tạm tính</span>
+                                <span class="subtotal" id="cart-subtotal">0₫</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Phí vận chuyển</span>
+                                <span class="shipping-fee" id="shipping-fee">0₫</span>
+                            </div>
+                            <div class="summary-row discount-row">
+                                <span>Giảm giá</span>
+                                <span class="discount" id="cart-discount">0₫</span>
+                            </div>
+                            <div class="summary-row total-row">
+                                <span>Tổng cộng</span>
+                                <span class="total" id="cart-total">0₫</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Discount Code -->
+                        <div class="discount-code">
+                            <input type="text" id="discount-code" placeholder="Nhập mã giảm giá">
+                            <button id="apply-discount" class="btn btn-secondary">Áp dụng</button>
+                        </div>
+                        
+                        <!-- Checkout Button -->
+                        <button id="checkout-btn" class="btn btn-primary btn-checkout" disabled>
+                            <i class="fas fa-credit-card"></i> Tiến hành thanh toán
+                        </button>
+                        
+                        <!-- Continue Shopping -->
+                        <a href="/html/see_all.html" class="continue-shopping">
+                            <i class="fas fa-arrow-left"></i> Tiếp tục mua sắm
+                        </a>
+                    </div>
+                    
+                    <!-- Shipping Info -->
+                    <div class="shipping-info">
+                        <h3><i class="fas fa-shipping-fast"></i> Thông tin giao hàng</h3>
+                        <ul>
+                            <li>Miễn phí vận chuyển cho đơn hàng từ 500.000₫</li>
+                            <li>Giao hàng trong 2-4 ngày tại Hà Nội & TP.HCM</li>
+                            <li>Giao hàng toàn quốc 3-7 ngày</li>
+                            <li>Đổi trả trong 7 ngày</li>
+                        </ul>
                     </div>
                 </div>
             </div>
-    </header>
-
-
-    <main class="container">
-    <!-- Sidebar bộ lọc -->
-        <aside class="filter-sidebar">
-            <h3>Bộ lọc sản phẩm</h3>
-            <div class="filter-group">
-                <strong>Giá</strong><br>
-                <label><input type="checkbox" name="price" value="duoi500"> Dưới 500.000₫</label>
-                <label><input type="checkbox" name="price" value="500-1000"> 500.000₫ - 1.000.000₫</label>
-                <label><input type="checkbox" name="price" value="tren1000"> Trên 1.000.000₫</label>
-            </div>
-
-            <div class="filter-group">
-                <strong>Loại sản phẩm</strong><br>
-                <label><input type="checkbox" name="category" value="ao-bong-da"> Quần áo</label>
-                <label><input type="checkbox" name="category" value="ao-khoac"> Áo khoác</label>
-            </div>
-
-            <div class="filter-group">
-                <strong>Thương hiệu</strong><br>
-                <label><input type="checkbox" name="brand" value="nike"> Nike</label>
-                <label><input type="checkbox" name="brand" value="adidas"> Adidas</label>
-                <label><input type="checkbox" name="brand" value="puma"> Puma</label>
-                <label><input type="checkbox" name="brand" value="mizuno"> Mizuno</label>
-                <label><input type="checkbox" name="brand" value="new-balance"> New Balance</label>
-            </div>
-
-            <div class="filter-group">
-                <strong>Giải đấu</strong><br>
-                <label><input type="checkbox" name="league" value="premier-league"> Premier League</label>
-                <label><input type="checkbox" name="league" value="la-liga"> La Liga</label>
-                <label><input type="checkbox" name="league" value="serie-a"> Serie A</label>
-                <label><input type="checkbox" name="league" value="ligue-1"> Ligue 1</label>
-                <label><input type="checkbox" name="league" value="v-league"> V-League</label>
-                <label><input type="checkbox" name="league" value="doi-tuyen-quoc-gia"> National</label>
-            </div>
-
-            <div class="filter-group">
-                <strong>Trạng thái</strong><br>
-                <label><input type="checkbox" name="status" value="active" checked> Còn hàng</label>
-                <label><input type="checkbox" name="status" value="onsale"> Đang giảm giá</label>
-            </div>
-        </aside>
-    
-    <!-- Danh sách sản phẩm -->
-    <div class="content-area">
-        <!-- Danh sách sản phẩm -->
-        <div class="product-grid"></div>
-        
-        <!-- Phân trang sẽ được thêm vào đây bởi JavaScript -->
-        <!-- <div class="pagination-container"></div> sẽ được tạo bởi JS -->
-    </div>
-  </main>
-
-    <section id="contact" class="contact">
-        <h2 class="section-title">LIÊN HỆ VỚI CHÚNG TÔI</h2>
-        <div class="contact-container">
-            <div class="contact-info">
-                <h3>Thông tin liên hệ</h3>
-                <p><i class="fas fa-map-marker-alt"></i> 55 Giải Phóng,Hai Bà Trưng,Hà Nội</p>
-                <p><i class="fas fa-phone"></i> 0123 456 789</p>
-                <p><i class="fas fa-envelope"></i> info@seasarstore.com</p>
-                <div class="social-icons">
-                    <a href="https://www.facebook.com/seasar.store/about"><i class="fab fa-facebook"></i></a>
-                    <a href="https://www.instagram.com/seasarstore/"><i class="fab fa-instagram"></i></a>
-                    <a href="https://shopee.vn/seasarstore11?entryPoint=ShopBySearch&searchKeyword=seasar%20store"><i class="fas fa-shopping-bag"></i></a>
+            
+            <!-- Related Products -->
+            <div class="related-products-section">
+                <h2>Có thể bạn sẽ thích</h2>
+                <div class="related-products-grid" id="related-products">
+                    <!-- Related products sẽ được load bằng JS -->
                 </div>
             </div>
-            <div class="contact-form">
-                <form>
-                    <input type="text" placeholder="Họ và tên" required>
-                    <input type="email" placeholder="Email" required>
-                    <input type="tel" placeholder="Số điện thoại">
-                    <textarea placeholder="Nội dung liên hệ" required></textarea>
-                    <button type="submit" class="btn">GỬI LIÊN HỆ</button>
-                </form>
-            </div>
         </div>
-    </section>
+    </main>
 
+    <!-- Footer -->
     <footer>
         <div class="footer-content">
             <div class="footer-section">
@@ -165,7 +178,7 @@
             <div class="footer-section">
                 <h3>HỖ TRỢ</h3>
                 <ul>
-                    <li><a href="/html/contact.html#return-policy-section ">Chính sách đổi trả</a></li>
+                    <li><a href="/html/contact.html#return-policy-section">Chính sách đổi trả</a></li>
                     <li><a href="/html/contact.html#shopping-guide-section">Hướng dẫn mua hàng</a></li>
                     <li><a href="/html/contact.html#faq-section">Câu hỏi thường gặp</a></li>
                 </ul>
@@ -176,15 +189,12 @@
         </div>
     </footer>
 
-    <!-- Floating Cart Button -->
+    <!-- Cart Common Elements -->
     <div class="cart-floating-btn" id="cart-floating-btn">
         <i class="fas fa-shopping-cart"></i>
         <span class="cart-floating-count" id="cart-floating-count">0</span>
     </div>
 
-    <div class="mini-cart-backdrop" id="mini-cart-backdrop"></div>
-
-    <!-- Mini Cart Popup -->
     <div class="mini-cart-popup" id="mini-cart-popup">
         <div class="mini-cart-header">
             <h3><i class="fas fa-shopping-cart"></i> Giỏ hàng của bạn</h3>
@@ -214,7 +224,6 @@
         </div>
     </div>
 
-    <!-- Cart Notification -->
     <div class="cart-notification" id="cart-notification">
         <div class="cart-notification-icon">
             <i class="fas fa-check-circle"></i>
@@ -226,12 +235,9 @@
         <button class="cart-notification-close" id="cart-notification-close">&times;</button>
     </div>
 
-    <script src="/js/image.js"></script>
-    <script src="/js/product-display.js"></script>
-    <script src="/js/pagination.js"></script>
+    <!-- Scripts -->
     <script src="/js/cart-common.js"></script>
-    <script src="/js/search.js"></script>
     <script src="/js/auth-simple.js"></script>
-    <script src="/js/clothes/clothes.js"></script>
+    <script src="/js/cart/cart.js"></script>
 </body>
 </html>

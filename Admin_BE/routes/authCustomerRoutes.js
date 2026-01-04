@@ -209,6 +209,59 @@ router.get('/check', (req, res) => {
   }
 });
 
+router.post('/check-email-exists', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.json({
+                success: false,
+                message: 'Vui lòng nhập email'
+            });
+        }
+
+        const pool = req.app.locals.db;
+        
+        if (!pool) {
+            return res.status(500).json({
+                success: false,
+                message: 'Lỗi kết nối database'
+            });
+        }
+
+        // Kiểm tra trong Customer table
+        const result = await pool.request()
+            .input('email', sql.NVarChar(100), email)
+            .query(`
+                SELECT 
+                    CustomerID,
+                    FullName,
+                    Email,
+                    Phone,
+                    Status,
+                    RegisterDate
+                FROM Customer 
+                WHERE Email = @email
+            `);
+
+        const exists = result.recordset.length > 0;
+        
+        res.json({
+            success: true,
+            exists: exists,
+            message: exists ? 'Email tồn tại trong hệ thống' : 'Email không tồn tại',
+            customer: exists ? result.recordset[0] : null
+        });
+
+    } catch (error) {
+        console.error('❌ Lỗi kiểm tra email:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi server: ' + error.message
+        });
+    }
+});
+
 // Đăng xuất khách hàng
 router.post('/logout', (req, res) => {
   res.clearCookie('customer_data');
@@ -216,6 +269,200 @@ router.post('/logout', (req, res) => {
     success: true,
     message: 'Đã đăng xuất'
   });
+});
+
+// Lấy thông tin profile khách hàng
+router.get('/profile/:id', async (req, res) => {
+    try {
+        const customerId = parseInt(req.params.id);
+        
+        if (!customerId || isNaN(customerId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'ID khách hàng không hợp lệ'
+            });
+        }
+
+        console.log('📋 Fetching profile for customer ID:', customerId);
+
+        const pool = req.app.locals.db;
+        
+        if (!pool) {
+            return res.status(500).json({
+                success: false,
+                message: 'Lỗi kết nối cơ sở dữ liệu'
+            });
+        }
+
+        // Truy vấn thông tin khách hàng
+        const result = await pool.request()
+            .input('customerId', sql.Int, customerId)
+            .query(`
+                SELECT 
+                    CustomerID,
+                    FullName,
+                    Email,
+                    Phone,
+                    Address,
+                    CONVERT(varchar, RegisterDate, 120) as RegisterDate,
+                    CONVERT(varchar, LastLogin, 120) as LastLogin,
+                    Status
+                FROM Customer 
+                WHERE CustomerID = @customerId
+            `);
+
+        console.log('📊 Profile query result:', result.recordset.length, 'records');
+
+        if (result.recordset.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Không tìm thấy thông tin khách hàng'
+            });
+        }
+
+        const customer = result.recordset[0];
+        
+        res.json({
+            success: true,
+            message: 'Lấy thông tin thành công',
+            customer: {
+                CustomerID: customer.CustomerID,
+                FullName: customer.FullName,
+                Email: customer.Email,
+                Phone: customer.Phone,
+                Address: customer.Address,
+                RegisterDate: customer.RegisterDate,
+                LastLogin: customer.LastLogin,
+                Status: customer.Status
+            }
+        });
+
+    } catch (error) {
+        console.error('❌ Lỗi lấy thông tin profile:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi server: ' + error.message
+        });
+    }
+});
+
+// Cập nhật thông tin profile
+router.put('/update/:id', async (req, res) => {
+    try {
+        const customerId = parseInt(req.params.id);
+        const { FullName, Email, Phone, Address } = req.body;
+
+        if (!customerId || isNaN(customerId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'ID khách hàng không hợp lệ'
+            });
+        }
+
+        console.log('📝 Updating profile for customer ID:', customerId);
+        console.log('Update data:', { FullName, Email, Phone, Address });
+
+        const pool = req.app.locals.db;
+        
+        if (!pool) {
+            return res.status(500).json({
+                success: false,
+                message: 'Lỗi kết nối cơ sở dữ liệu'
+            });
+        }
+
+        // Kiểm tra email có trùng không (nếu thay đổi email)
+        if (Email && Email !== req.body.originalEmail) {
+            const emailCheck = await pool.request()
+                .input('email', sql.NVarChar(100), Email)
+                .input('customerId', sql.Int, customerId)
+                .query(`
+                    SELECT CustomerID FROM Customer 
+                    WHERE Email = @email AND CustomerID != @customerId
+                `);
+            
+            if (emailCheck.recordset.length > 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Email đã được sử dụng bởi tài khoản khác'
+                });
+            }
+        }
+
+        // Cập nhật thông tin - CHỈ các trường cơ bản
+        const updateQuery = `
+            UPDATE Customer 
+            SET 
+                FullName = @fullName,
+                Email = @email,
+                Phone = @phone,
+                Address = @address
+            WHERE CustomerID = @customerId
+        `;
+        
+        await pool.request()
+            .input('fullName', sql.NVarChar(100), FullName)
+            .input('email', sql.NVarChar(100), Email)
+            .input('phone', sql.NVarChar(20), Phone)
+            .input('address', sql.NVarChar(255), Address)
+            .input('customerId', sql.Int, customerId)
+            .query(updateQuery);
+
+        console.log('✅ Profile updated successfully');
+
+        // Lấy thông tin mới để trả về
+        const getQuery = `
+            SELECT 
+                CustomerID,
+                FullName,
+                Email,
+                Phone,
+                Address,
+                CONVERT(varchar, RegisterDate, 120) as RegisterDate,
+                CONVERT(varchar, LastLogin, 120) as LastLogin,
+                Status
+            FROM Customer 
+            WHERE CustomerID = @customerId
+        `;
+        
+        const result = await pool.request()
+            .input('customerId', sql.Int, customerId)
+            .query(getQuery);
+
+        const updatedCustomer = result.recordset[0];
+        
+        // Cập nhật LastLogin cho lần update này (tùy chọn)
+        await pool.request()
+            .input('customerId', sql.Int, customerId)
+            .query('UPDATE Customer SET LastLogin = GETDATE() WHERE CustomerID = @customerId');
+
+        res.json({
+            success: true,
+            message: 'Cập nhật thông tin thành công',
+            customer: updatedCustomer
+        });
+
+    } catch (error) {
+        console.error('❌ Lỗi cập nhật profile:', error);
+        
+        // Kiểm tra lỗi cụ thể
+        let errorMessage = 'Lỗi server';
+        
+        if (error.message.includes('Invalid column name')) {
+            errorMessage = 'Lỗi database: Cột không tồn tại trong bảng';
+        } else if (error.message.includes('Cannot insert duplicate key')) {
+            errorMessage = 'Email đã được sử dụng';
+        } else if (error.message.includes('String or binary data would be truncated')) {
+            errorMessage = 'Dữ liệu quá dài cho một trong các trường';
+        } else {
+            errorMessage = error.message;
+        }
+        
+        res.status(500).json({
+            success: false,
+            message: errorMessage
+        });
+    }
 });
 
 module.exports = router;

@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shop Quần Áo Bóng Đá - Đồng Phục Câu Lạc Bộ</title>
-    <link rel="stylesheet" href="/User_FE/css/introduction.css">
+    <link rel="stylesheet" href="/css/auth-simple.css">
+    <link rel="stylesheet" href="/css/cart-common.css">
+    <link rel="stylesheet" href="/css/introduction.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
@@ -16,62 +18,37 @@
             </div>
             <nav class="main-nav">
                 <ul>
-                    <li><a href="/User_FE/Home/home.html">Trang chủ</a></li>
+                    <li><a href="/html/home.html">Trang chủ</a></li>
                     <li class="dropdown">
-                        <a href="/User_FE/See_All/see_all.html">Sản phẩm <i class="fas fa-chevron-down"></i></a>
+                        <a href="/html/see_all.html">Sản phẩm <i class="fas fa-chevron-down"></i></a>
                         <div class="dropdown-menu">
                             <div class="dropdown-column">
-                                <a href="../QUAN_AO/quanao.html"><h4>Quần áo</h4></a>
-                                <ul>
-                                    <li><a href="../QUAN_AO/quanao.html?league=epl">Premier League</a></li>
-                                    <li><a href="../QUAN_AO/quanao.html?league=laliga">La Liga</a></li>
-                                    <li><a href="../QUAN_AO/quanao.html?league=seriea">Serie A</a></li>
-                                    <li><a href="../QUAN_AO/quanao.html?league=bundesliga">Bundesliga</a></li>
-                                    <li><a href="../QUAN_AO/quanao.html?league=ligue1">Ligue 1</a></li>
-                                    <li><a href="../QUAN_AO/quanao.html?league=v-league">V-League</a></li>
-                                    <li><a href="../QUAN_AO/quanao.html?league=đtqg">ĐTQG</a></li>
-                                </ul>
+                                <a href="/html/clothes.html"><h4>Quần áo</h4></a>
                             </div>
                             <div class="dropdown-column">
-                                <a href="../GIAY/giay.html"><h4>Giày</h4></a>
-                                <ul>
-                                    <li><a href="../GIAY/giay.html?brand=nike">Nike</a></li>
-                                    <li><a href="../GIAY/giay.html?brand=adidas">Adidas</a></li>
-                                    <li><a href="../GIAY/giay.html?brand=puma">Puma</a></li>
-                                    <li><a href="../GIAY/giay.html?brand=mizuno">Mizuno</a></li>
-                                    <li><a href="../GIAY/giay.html?brand=newbalance">New Balance</a></li>
-                                </ul>
+                                <a href="/html/shoes.html"><h4>Giày</h4></a>
                             </div>
                             <div class="dropdown-column">
-                                <a href="../GANG_TAY/gangtay.html"><h4>Găng tay thủ môn</h4></a>
-                                <ul>
-                                    <li><a href="../GANG_TAY/gangtay.html?brand=nike">Nike</a></li>
-                                    <li><a href="../GANG_TAY/gangtay.html?brand=adidas">Adidas</a></li>
-                                    <li><a href="../GANG_TAY/gangtay.html?brand=puma">Puma</a></li>
-                                    <li><a href="../GANG_TAY/gangtay.html?brand=gkvn">GKVN</a></li>
-                                    
-                                </ul>
+                                <a href="/html/gloves.html"><h4>Găng tay thủ môn</h4></a>
                             </div>
                             <div class="dropdown-column">
-                                <a href="../PHU_KIEN/phukien.html"><h4>Phụ kiện</h4></a>
+                                <a href="/html/accessories.html"><h4>Phụ kiện</h4></a>
                             </div>
                         </div>
                     </li>
                     <li><a href="#" class="active">Giới thiệu</a></li>
-                    <li><a href="../LIEN_HE/lienhe.html" >Liên hệ</a></li>
+                    <li><a href="/html/contact.html" >Liên hệ</a></li>
                 </ul>
             </nav>
             <div class="header-actions">
-                <div class="search-box">
-                    <input type="text" placeholder="Tìm kiếm sản phẩm...">
-                    <button><i class="fas fa-search"></i></button>
-                </div>
-                <div class="cart-icon">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span class="cart-count">0</span>
+                <div class="cart-module-container">
+                    <div class="cart-icon" id="header-cart-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count">0</span>
+                    </div>
                 </div>
                 <div class="user-actions">
-                    <a href="../DANG_NHAP+DANG_KY/login.html"><i class="fas fa-user"></i></a>
+                    <a href="/html/login.html"><i class="fas fa-user"></i></a>
                 </div>
             </div>
         </div>
@@ -224,7 +201,7 @@
                         </div>
                         <!-- Trong thực tế, bạn sẽ embed Google Maps iframe ở đây -->
                         <div class="map-image">
-                            <img src="/User_FE/image/ggmap.jpg" alt="Bản đồ cửa hàng">
+                            <img src="/image/ggmap.jpg" alt="Bản đồ cửa hàng">
                         </div>
                     </div>
                 </div>
@@ -250,18 +227,18 @@
             <div class="footer-section">
                 <h3>LIÊN KẾT NHANH</h3>
                 <ul>
-                    <li><a href="../TRANG_CHU/index.html">Trang chủ</a></li>
-                    <li><a href="../XEM_TAT_CA/xemtatca.html">Sản phẩm</a></li>
-                    <li><a href="../GIOI_THIEU/gioithieu.html">Giới thiệu</a></li>
-                    <li><a href="../LIEN_HE/lienhe.html">Liên hệ</a></li>
+                    <li><a href="/html/home.html">Trang chủ</a></li>
+                    <li><a href="/html/see_all.html">Sản phẩm</a></li>
+                    <li><a href="#" class="active">Giới thiệu</a></li>
+                    <li><a href="/html/contact.html">Liên hệ</a></li>
                 </ul>
             </div>
             <div class="footer-section">
                 <h3>HỖ TRỢ</h3>
                 <ul>
-                    <li><a href="../LIEN_HE/lienhe.html#return-policy-section ">Chính sách đổi trả</a></li>
-                    <li><a href="../LIEN_HE/lienhe.html#shopping-guide-section">Hướng dẫn mua hàng</a></li>
-                    <li><a href="../LIEN_HE/lienhe.html#faq-section">Câu hỏi thường gặp</a></li>
+                    <li><a href="/html/contact.html#return-policy-section ">Chính sách đổi trả</a></li>
+                    <li><a href="/html/contact.html#shopping-guide-section">Hướng dẫn mua hàng</a></li>
+                    <li><a href="/html/contact.html#faq-section">Câu hỏi thường gặp</a></li>
                 </ul>
             </div>
         </div>
@@ -269,6 +246,59 @@
             <p>&copy; 2025 FOOTBALLSTORE. All Rights Reserved.</p>
         </div>
     </footer>
-    <script src="/User_FE/js/introduction/introduction.js"></script>
+
+    <!-- Floating Cart Button -->
+    <div class="cart-floating-btn" id="cart-floating-btn">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="cart-floating-count" id="cart-floating-count">0</span>
+    </div>
+
+    <div class="mini-cart-backdrop" id="mini-cart-backdrop"></div>
+
+    <!-- Mini Cart Popup -->
+    <div class="mini-cart-popup" id="mini-cart-popup">
+        <div class="mini-cart-header">
+            <h3><i class="fas fa-shopping-cart"></i> Giỏ hàng của bạn</h3>
+            <button class="close-mini-cart" id="close-mini-cart">&times;</button>
+        </div>
+        
+        <div class="mini-cart-items" id="mini-cart-items">
+            <div class="mini-cart-empty">
+                <i class="fas fa-shopping-cart"></i>
+                <p>Giỏ hàng trống</p>
+            </div>
+        </div>
+        
+        <div class="mini-cart-footer">
+            <div class="mini-cart-total">
+                <span>Tổng tiền:</span>
+                <span class="mini-cart-total-amount" id="mini-cart-total">0₫</span>
+            </div>
+            <div class="mini-cart-actions">
+                <button class="btn-view-cart" onclick="window.location.href='/html/cart.html'">
+                    <i class="fas fa-eye"></i> Xem giỏ hàng
+                </button>
+                <button class="btn-checkout" onclick="window.location.href='/html/checkout.html'">
+                    <i class="fas fa-credit-card"></i> Thanh toán
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Notification -->
+    <div class="cart-notification" id="cart-notification">
+        <div class="cart-notification-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="cart-notification-content">
+            <div class="cart-notification-title">Đã thêm vào giỏ hàng</div>
+            <div class="cart-notification-message" id="cart-notification-message"></div>
+        </div>
+        <button class="cart-notification-close" id="cart-notification-close">&times;</button>
+    </div>
+
+    <script src="/js/auth-simple.js"></script>
+    <script src="/js/cart-common.js"></script>
+    <script src="/js/introduction/introduction.js"></script>
 </body>
 </html>

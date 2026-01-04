@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quản lý Đơn hàng - Admin Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="/css/orders.css">
+  <link rel="stylesheet" href="/admin/css/style.css">
+  <link rel="stylesheet" href="/admin/css/orders.css">
 </head>
 <body>
   <!-- Sidebar -->
@@ -101,7 +101,6 @@
           <select id="statusFilter">
             <option value="">Tất cả trạng thái</option>
             <option value="pending">Đang chờ xử lý</option>
-            <option value="paid">Đã thanh toán</option>
             <option value="shipping">Đang giao hàng</option>
             <option value="completed">Đã hoàn thành</option>
             <option value="cancelled">Đã hủy</option>
@@ -138,11 +137,6 @@
     <div class="table-container">
       <div class="table-header">
         <h2>Danh sách đơn hàng</h2>
-        <div>
-          <button class="btn btn-primary" onclick="exportOrders()">
-            <i class="fas fa-download"></i> Xuất Excel
-          </button>
-        </div>
       </div>
       
       <table>
@@ -260,7 +254,7 @@
         try {
             console.log("🔄 Đang tải danh sách đơn hàng...");
             
-            const response = await fetch('/order');
+            const response = await fetch('/api/order');
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -281,7 +275,7 @@
     // Hàm lấy thống kê đơn hàng
     async function loadOrderStats() {
         try {
-            const response = await fetch('/order/stats');
+            const response = await fetch('/api/order/stats');
             if (!response.ok) throw new Error('Lỗi khi tải thống kê');
             
             const stats = await response.json();
@@ -346,37 +340,30 @@
                 
                 // Tạo action buttons dựa trên trạng thái hiện tại
                 let statusButtonsHTML = '';
-                
+
                 switch(order.Status) {
                     case 'pending':
                         statusButtonsHTML = `
-                        <button class="btn btn-success btn-sm" onclick="updateOrderStatus(${order.OrderID}, 'paid')" title="Xác nhận thanh toán">
-                            <i class="fas fa-check"></i>
+                        <button class="btn btn-success btn-sm" onclick="updateOrderStatus(${order.OrderID}, 'shipping')" title="Xác nhận đơn hàng">
+                            <i class="fas fa-check"></i> Xác nhận
                         </button>
                         <button class="btn btn-danger btn-sm" onclick="updateOrderStatus(${order.OrderID}, 'cancelled')" title="Hủy đơn hàng">
-                            <i class="fas fa-times"></i>
-                        </button>
-                        `;
-                        break;
-                    case 'paid':
-                        statusButtonsHTML = `
-                        <button class="btn btn-warning btn-sm" onclick="updateOrderStatus(${order.OrderID}, 'shipping')" title="Bắt đầu giao hàng">
-                            <i class="fas fa-shipping-fast"></i>
-                        </button>
-                        <button class="btn btn-danger btn-sm" onclick="updateOrderStatus(${order.OrderID}, 'cancelled')" title="Hủy đơn hàng">
-                            <i class="fas fa-times"></i>
+                            <i class="fas fa-times"></i> Hủy
                         </button>
                         `;
                         break;
                     case 'shipping':
                         statusButtonsHTML = `
-                        <button class="btn btn-primary btn-sm" onclick="updateOrderStatus(${order.OrderID}, 'completed')" title="Hoàn thành đơn hàng">
-                            <i class="fas fa-check-circle"></i>
+                        <button class="btn btn-primary btn-sm" onclick="updateOrderStatus(${order.OrderID}, 'completed')" title="Đánh dấu đã giao">
+                            <i class="fas fa-check-circle"></i> Đã giao
                         </button>
                         `;
                         break;
                     case 'completed':
                     case 'cancelled':
+                        statusButtonsHTML = '';
+                        break;
+
                         // Đơn hàng đã hoàn thành hoặc hủy - chỉ hiển thị nút xem chi tiết
                         statusButtonsHTML = '';
                         break;
@@ -572,6 +559,28 @@
         }
     }
 
+    function fixImageUrl(imageUrl) {
+        if (!imageUrl) return '/image/default-product.jpg';
+        
+        // Nếu đã là full URL thì giữ nguyên
+        if (imageUrl.startsWith('http')) return imageUrl;
+        
+        // Nếu bắt đầu bằng /html/ thì bỏ
+        if (imageUrl.startsWith('/html/')) {
+            imageUrl = imageUrl.replace('/html/', '/');
+        }
+        
+        // Nếu không bắt đầu bằng /image/ thì thêm
+        if (!imageUrl.startsWith('/image/') && !imageUrl.startsWith('/')) {
+            imageUrl = '/image/' + imageUrl;
+        } else if (imageUrl.startsWith('/') && !imageUrl.startsWith('/image/')) {
+            // Đảm bảo bắt đầu bằng /image/
+            imageUrl = '/image' + imageUrl;
+        }
+        
+        return imageUrl;
+    }
+
     // Hiển thị Modal chi tiết đơn hàng
     function showOrderDetailModal(orderData) {
         const order = orderData.order;
@@ -655,17 +664,19 @@
                                         <td>
                                             <div class="product-info">
                                                 ${item.ImageURL ? 
-                                                    `<img src="${item.ImageURL}" alt="${item.ProductName}" class="product-image" onerror="this.style.display='none'">` : 
+                                                    `<img src="${fixImageUrl(item.ImageURL)}" alt="${item.ProductName}" class="product-image" 
+                                                        onerror="this.src='/image/default-product.jpg'">` : 
                                                     `<div class="product-image" style="background: #e9ecef; display: flex; align-items: center; justify-content: center;">
                                                         <i class="fas fa-box" style="color: #6c757d;"></i>
                                                     </div>`
                                                 }
                                                 <span>${item.ProductName || 'Sản phẩm'}</span>
+                                                ${item.SizeName ? `<span class="product-size">Size: ${item.SizeName}</span>` : ''}
                                             </div>
                                         </td>
-                                        <td>${formatCurrency(item.Price)}</td>
+                                        <td>${formatCurrency(item.UnitPrice || item.Price)}</td>
                                         <td>${item.Quantity}</td>
-                                        <td>${formatCurrency(item.Quantity * item.Price)}</td>
+                                        <td>${formatCurrency((item.UnitPrice || item.Price) * item.Quantity)}</td>
                                     </tr>
                                 `).join('') : `
                                     <tr>
@@ -724,11 +735,6 @@
         }
     });
 
-    // Xuất Excel
-    function exportOrders() {
-        alert('Tính năng xuất Excel sẽ được triển khai!');
-    }
-
     // Hiển thị dữ liệu mẫu khi API lỗi
     function showFallbackData() {
         const fallbackData = [
@@ -769,21 +775,25 @@
 
     // Các status hợp lệ theo database
     const validStatuses = {
-        'pending': 'Đang chờ',
-        'paid': 'Đã thanh toán', 
+        'pending': 'Đang chờ xác nhận',
         'shipping': 'Đang giao hàng',
-        'completed': 'Đã hoàn thành',
+        'completed': 'Đã giao hàng',
         'cancelled': 'Đã hủy'
     };
 
     function getStatusText(status) {
-        return validStatuses[status] || 'Đang chờ';
+        const statusMap = {
+            'pending': 'Đang chờ xác nhận',
+            'shipping': 'Đang giao hàng',
+            'completed': 'Đã giao hàng',
+            'cancelled': 'Đã hủy'
+        };
+        return statusMap[status] || 'Đang chờ xác nhận';
     }
 
     function getStatusClass(status) {
         const statusMap = {
             'pending': 'pending',
-            'paid': 'processing',
             'shipping': 'shipping',
             'completed': 'completed',
             'cancelled': 'cancelled'

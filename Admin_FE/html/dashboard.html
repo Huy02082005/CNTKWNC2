@@ -5,9 +5,366 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="/css/dashboard.css">
 </head>
+<style>
+  :root {
+    --primary: #4361ee;
+    --secondary: #3f37c9;
+    --success: #4cc9f0;
+    --warning: #f72585;
+    --dark: #1d3557;
+    --light: #f8f9fa;
+    --sidebar-width: 250px;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  body {
+    background-color: #f5f7fb;
+    color: #333;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: var(--sidebar-width);
+    background: linear-gradient(to bottom, var(--primary), var(--secondary));
+    color: white;
+    height: 100vh;
+    position: fixed;
+    transition: all 0.3s;
+    box-shadow: 3px 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .sidebar-header {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .sidebar-header h2 {
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+  }
+
+  .sidebar-menu {
+    padding: 20px 0;
+  }
+
+  .sidebar-menu ul {
+    list-style: none;
+  }
+
+  .sidebar-menu li {
+    padding: 12px 20px;
+    transition: all 0.3s;
+  }
+
+  .sidebar-menu li:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-left: 4px solid white;
+  }
+
+  .sidebar-menu li.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-left: 4px solid white;
+  }
+
+  .sidebar-menu a {
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+  }
+
+  .sidebar-menu i {
+    margin-right: 10px;
+    font-size: 1.2rem;
+  }
+
+  /* Main Content */
+  .main-content {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    padding: 20px;
+    transition: all 0.3s;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .header h1 {
+    color: var(--dark);
+    font-size: 1.8rem;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+  }
+
+  .user-info img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    border: 2px solid var(--primary);
+  }
+
+  /* Cards */
+  .card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s;
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+  }
+
+  /* Buttons */
+  .btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s;
+  }
+
+  .btn-primary {
+    background-color: var(--primary);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--secondary);
+  }
+
+  .btn-outline {
+    background-color: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+  }
+
+  .btn-outline:hover {
+    background-color: var(--primary);
+    color: white;
+  }
+
+  .btn-danger {
+    background-color: var(--warning);
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background-color: #d21e6d;
+  }
+
+  .btn-success {
+    background-color: var(--success);
+    color: white;
+  }
+
+  .btn-success:hover {
+    background-color: #3aa8c9;
+  }
+
+  .btn-warning {
+    background-color: #ffc107;
+    color: #212529;
+  }
+
+  .btn-warning:hover {
+    background-color: #e0a800;
+  }
+
+  .btn-sm {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+
+  /* Table Container */
+  .table-container {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+  }
+
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  th {
+    background-color: #f8f9fa;
+    color: var(--dark);
+    font-weight: 600;
+  }
+
+  tr:hover {
+    background-color: #f8f9fa;
+  }
+
+  /* Status */
+  .status {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+    display: inline-block;
+  }
+
+  .status.active {
+    background-color: rgba(76, 201, 240, 0.2);
+    color: var(--success);
+  }
+
+  .status.pending {
+    background-color: rgba(247, 37, 133, 0.2);
+    color: var(--warning);
+  }
+
+  /* Background Colors */
+  .bg-primary { background-color: var(--primary); }
+  .bg-success { background-color: var(--success); }
+  .bg-warning { background-color: var(--warning); }
+  .bg-dark { background-color: var(--dark); }
+
+  /* Form Elements */
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--dark);
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 0.9rem;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 15px;
+  }
+
+  .form-row .form-group {
+    flex: 1;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 70px;
+    }
+    
+    .sidebar-header h2, .sidebar-menu span {
+      display: none;
+    }
+    
+    .sidebar-menu i {
+      margin-right: 0;
+      font-size: 1.5rem;
+    }
+    
+    .main-content {
+      margin-left: 70px;
+    }
+    
+    .table-header {
+      flex-direction: column;
+      gap: 15px;
+      align-items: flex-start;
+    }
+  }
+
+  /* dashboard.css - CSS riêng cho trang Dashboard */
+
+  /* Stats Cards */
+  .stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+
+  .stat-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .stat-info h3 {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+  }
+
+  .stat-info h2 {
+    font-size: 1.8rem;
+    color: var(--dark);
+  }
+
+  .stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+  }
+
+  .text-success { color: #28a745 !important; }
+  .text-danger { color: #dc3545 !important; }
+
+  /* Responsive cho Dashboard */
+  @media (max-width: 768px) {
+    .stats-cards {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
 <body>
   <!-- Sidebar -->
   <div class="sidebar">
@@ -226,7 +583,7 @@
   try {
     console.log("🔄 Đang tải dữ liệu thống kê từ API...");
     
-    const response = await fetch('/dashboard/stats', {
+    const response = await fetch('/api/dashboard/stats', {
       credentials: 'include'
     });
     
@@ -266,117 +623,123 @@
 
     // Hàm tải đơn hàng gần đây
     async function loadRecentOrders() {
-      try {
-        const response = await fetch('/order?limit=5', {
-          credentials: 'include'
-        });
-        
-        if (!response.ok) {
-          console.warn('Không thể tải đơn hàng, sử dụng data mẫu');
-          showFallbackOrders();
-          return;
-        }
-        
-        const result = await response.json();
-        
-        if (result.success && result.data) {
-          updateOrdersTable(result.data.slice(0, 5));
-        } else {
-          showFallbackOrders();
-        }
-        
-      } catch (error) {
-        console.error('❌ Lỗi tải đơn hàng:', error);
-        showFallbackOrders();
-      }
+  try {
+    console.log("🔄 Đang tải đơn hàng gần đây...");
+    
+    const response = await fetch('/api/dashboard/recent-orders?limit=5', {
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      console.warn('Không thể tải đơn hàng từ API, sử dụng data mẫu');
+      showFallbackOrders();
+      return;
     }
+    
+    const result = await response.json();
+    console.log('📊 Đơn hàng gần đây:', result);
+    
+    if (result.success && result.data) {
+      updateOrdersTable(result.data);
+    } else {
+      showFallbackOrders();
+    }
+    
+  } catch (error) {
+    console.error('❌ Lỗi tải đơn hàng:', error);
+    showFallbackOrders();
+  }
+}
 
     // Hàm tải khách hàng mới
     async function loadRecentCustomers() {
-      try {
-        const response = await fetch('/customer?limit=3', {
-          credentials: 'include'
-        });
-        
-        if (!response.ok) {
-          console.warn('Không thể tải khách hàng, sử dụng data mẫu');
-          showFallbackCustomers();
-          return;
-        }
-        
-        const result = await response.json();
-        
-        if (result.success && result.data) {
-          updateCustomersTable(result.data.slice(0, 3));
-        } else {
-          showFallbackCustomers();
-        }
-        
-      } catch (error) {
-        console.error('❌ Lỗi tải khách hàng:', error);
-        showFallbackCustomers();
-      }
+  try {
+    console.log("🔄 Đang tải khách hàng mới...");
+    
+    const response = await fetch('/api/dashboard/recent-customers?limit=3', {
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      console.warn('Không thể tải khách hàng từ API, sử dụng data mẫu');
+      showFallbackCustomers();
+      return;
     }
+    
+    const result = await response.json();
+    console.log('📊 Khách hàng mới:', result);
+    
+    if (result.success && result.data) {
+      updateCustomersTable(result.data);
+    } else {
+      showFallbackCustomers();
+    }
+    
+  } catch (error) {
+    console.error('❌ Lỗi tải khách hàng:', error);
+    showFallbackCustomers();
+  }
+}
 
     // Cập nhật bảng đơn hàng
     function updateOrdersTable(orders) {
-      const tbody = document.getElementById('ordersTableBody');
-      
-      if (!orders || orders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Chưa có đơn hàng nào</td></tr>';
-        return;
-      }
-      
-      tbody.innerHTML = orders.map(order => `
-        <tr>
-          <td>#ORD-${order.OrderID || order.id}</td>
-          <td>${order.FullName || order.CustomerName || 'Khách hàng'}</td>
-          <td>${formatDate(order.OrderDate || order.createdAt)}</td>
-          <td>${formatCurrency(order.TotalPrice || order.total)}</td>
-          <td><span class="status ${getStatusClass(order.Status || order.status)}">
-            ${getStatusText(order.Status || order.status)}
-          </span></td>
-          <td>
-            <button class="btn btn-outline" onclick="viewOrderDetail(${order.OrderID || order.id})">
-              Chi tiết
-            </button>
-          </td>
-        </tr>
-      `).join('');
-    }
+  const tbody = document.getElementById('ordersTableBody');
+  
+  if (!orders || orders.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Chưa có đơn hàng nào</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = orders.map(order => `
+    <tr>
+      <td>#ORD-${order.OrderID}</td>
+      <td>${order.FullName || 'Khách hàng'}</td>
+      <td>${formatDate(order.OrderDate)}</td>
+      <td>${formatCurrency(order.TotalPrice)}</td>
+      <td><span class="status ${getStatusClass(order.Status)}">
+        ${getStatusText(order.Status)}
+      </span></td>
+      <td>
+        <button class="btn btn-outline" onclick="viewOrderDetail(${order.OrderID})">
+          Chi tiết
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
 
     // Cập nhật bảng khách hàng
     function updateCustomersTable(customers) {
-      const tbody = document.getElementById('customersTableBody');
-      
-      if (!customers || customers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Chưa có khách hàng nào</td></tr>';
-        return;
-      }
-      
-      tbody.innerHTML = customers.map(customer => `
-        <tr>
-          <td>
-            <div style="display: flex; align-items: center;">
-              <img src="https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70) + 1}" 
-                   alt="Avatar" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
-              ${customer.FullName || customer.Username || customer.name || 'Khách hàng'}
-            </div>
-          </td>
-          <td>${customer.Email || customer.email || 'Chưa có email'}</td>
-          <td>${formatDate(customer.RegisterDate || customer.createdAt)}</td>
-          <td>${(customer.Role === 'admin' || customer.isAdmin) ? 'Admin' : 'Khách hàng'}</td>
-          <td>
-            <button class="btn btn-outline" onclick="editCustomer(${customer.CustomerID || customer.id})">
-              Sửa
-            </button>
-            <button class="btn btn-danger" onclick="deleteCustomer(${customer.CustomerID || customer.id})">
-              Xóa
-            </button>
-          </td>
-        </tr>
-      `).join('');
-    }
+  const tbody = document.getElementById('customersTableBody');
+  
+  if (!customers || customers.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Chưa có khách hàng nào</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = customers.map(customer => `
+    <tr>
+      <td>
+        <div style="display: flex; align-items: center;">
+          <img src="https://i.pravatar.cc/150?img=${customer.CustomerID % 70 + 1}" 
+               alt="Avatar" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
+          ${customer.FullName || 'Khách hàng'}
+        </div>
+      </td>
+      <td>${customer.Email || 'Chưa có email'}</td>
+      <td>${formatDate(customer.RegisterDate)}</td>
+      <td>${customer.Status === 1 ? 'Hoạt động' : 'Khóa'}</td>
+      <td>
+        <button class="btn btn-outline" onclick="editCustomer(${customer.CustomerID})">
+          Sửa
+        </button>
+        <button class="btn btn-danger" onclick="deleteCustomer(${customer.CustomerID})">
+          Xóa
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
 
     // Hàm đăng xuất
     async function logout() {
@@ -461,44 +824,51 @@
 
     // Định dạng tiền tệ
     function formatCurrency(amount) {
-      if (!amount) return '0 VNĐ';
-      return new Intl.NumberFormat('vi-VN').format(amount) + ' VNĐ';
-    }
+  if (!amount || amount === 0) return '0 VNĐ';
+  return new Intl.NumberFormat('vi-VN').format(amount) + ' VNĐ';
+}
 
-    // Định dạng ngày
-    function formatDate(dateString) {
-      if (!dateString) return 'Chưa có ngày';
-      const date = new Date(dateString);
-      return date.toLocaleDateString('vi-VN');
-    }
+// Định dạng ngày
+function formatDate(dateString) {
+  if (!dateString) return 'Chưa có ngày';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('vi-VN');
+}
 
-    // Lấy class cho trạng thái
-    function getStatusClass(status) {
-      const statusMap = {
-        'completed': 'active',
-        'delivered': 'active', 
-        'paid': 'active',
-        'pending': 'pending',
-        'processing': 'pending',
-        'shipping': 'pending',
-        'cancelled': 'pending'
-      };
-      return statusMap[status] || 'pending';
-    }
+// Lấy class cho trạng thái (dựa vào database)
+function getStatusClass(status) {
+  switch (status) {
+    case 'completed':
+    case 'paid':
+      return 'active';
+    case 'pending':
+      return 'pending';
+    case 'shipping':
+      return 'pending';
+    case 'cancelled':
+      return 'pending';
+    default:
+      return 'pending';
+  }
+}
 
-    // Lấy text cho trạng thái
-    function getStatusText(status) {
-      const statusTextMap = {
-        'completed': 'Đã giao',
-        'delivered': 'Đã giao',
-        'paid': 'Đã thanh toán',
-        'pending': 'Đang xử lý',
-        'processing': 'Đang xử lý',
-        'shipping': 'Đang giao hàng',
-        'cancelled': 'Đã hủy'
-      };
-      return statusTextMap[status] || 'Đang xử lý';
-    }
+// Lấy text cho trạng thái (dựa vào database)
+function getStatusText(status) {
+  switch (status) {
+    case 'completed':
+      return 'Đã hoàn thành';
+    case 'paid':
+      return 'Đã thanh toán';
+    case 'pending':
+      return 'Đang chờ';
+    case 'shipping':
+      return 'Đang giao hàng';
+    case 'cancelled':
+      return 'Đã hủy';
+    default:
+      return status;
+  }
+}
 
     // Xem chi tiết đơn hàng
     function viewOrderDetail(orderId) {
