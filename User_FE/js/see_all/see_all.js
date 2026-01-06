@@ -291,8 +291,8 @@ const LEAGUE_MAP = {
     'serie-a': 'Serie A',
     'bundesliga': 'Bundesliga',
     'ligue-1': 'Ligue 1',
-    'v-league': 'V-League',
-    'doi-tuyen-quoc-gia': 'NATIONAL'
+    'v-league': 'V-League 1',
+    'doi-tuyen-quoc-gia': 'National'
 };
 
 function initFilters() {    

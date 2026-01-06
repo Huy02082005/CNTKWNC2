@@ -49,7 +49,7 @@
 /* Checkout Container */
 .checkout-container {
     display: grid;
-    grid-template-columns: 1fr 400px;
+    grid-template-columns: 1fr;
     gap: 30px;
 }
 
@@ -215,39 +215,6 @@
     margin: 0;
     font-size: 14px;
     color: #666;
-}
-
-/* Banking Info */
-.banking-info {
-    margin-top: 20px;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border-left: 4px solid #2196F3;
-    display: none;
-}
-
-.banking-info.show {
-    display: block;
-    animation: fadeIn 0.3s ease;
-}
-
-.banking-info h4 {
-    margin: 0 0 15px 0;
-    color: #333;
-    font-size: 16px;
-}
-
-.bank-details p {
-    margin: 8px 0;
-    font-size: 14px;
-    color: #555;
-}
-
-.bank-details strong {
-    color: #333;
-    min-width: 150px;
-    display: inline-block;
 }
 
 /* Checkout Summary */

@@ -2,8 +2,7 @@
 
 // Khởi tạo trang thanh toán
 function initializeCheckout() {
-    console.log('💳 Initializing checkout page...');
-    
+ 
     // Load cart data
     loadCheckoutData();
     
@@ -19,7 +18,6 @@ function initializeCheckout() {
 
 // Load cart data và hiển thị
 function loadCheckoutData() {
-    console.log('📦 Loading checkout data...');
     
     // Lấy dữ liệu từ localStorage
     let cart = [];
@@ -30,7 +28,6 @@ function loadCheckoutData() {
         try {
             const item = JSON.parse(directCheckoutItem);
             cart = [item];
-            console.log('🛒 Using direct checkout item:', item);
         } catch (e) {
             console.error('❌ Error parsing direct checkout item:', e);
         }
@@ -53,8 +50,6 @@ function renderCheckoutItems(cart) {
     const checkoutItems = document.getElementById('checkout-items');
     if (!checkoutItems) return;
     
-    console.log('🛒 Rendering checkout items:', cart); // Debug log
-    
     if (cart.length === 0) {
         checkoutItems.innerHTML = `
             <div class="empty-cart">
@@ -69,8 +64,6 @@ function renderCheckoutItems(cart) {
     let html = '';
     
     cart.forEach((item, index) => {
-        console.log(`📦 Item ${index}:`, item); // Debug log
-        
         const itemPrice = parseFloat(item.price) || 0;
         const itemQuantity = parseInt(item.quantity) || 1;
         const itemTotal = itemPrice * itemQuantity;
@@ -98,7 +91,6 @@ function renderCheckoutItems(cart) {
     });
     
     checkoutItems.innerHTML = html;
-    console.log('✅ Checkout items rendered');
 }
 
 // Tính toán tổng tiền
@@ -205,10 +197,8 @@ function setupDiscountCode() {
                 showCheckoutNotification('Vui lòng nhập mã giảm giá', 'error');
                 return;
             }
-            
-            // Simulate discount application
-            // In real app, call API to validate discount code
-            const discount = 50000; // Example: 50,000đ discount
+
+            const discount = 50000;
             
             showCheckoutNotification(`Đã áp dụng mã giảm giá: ${code}`, 'success');
             discountInput.value = '';
@@ -364,9 +354,7 @@ function setupCityDistrict() {
 }
 
 // Process order
- // Process order - SEND TO API
 async function processOrder() {
-    console.log('✅ Processing order...');
     
     const placeOrderBtn = document.getElementById('place-order-btn');
     if (!placeOrderBtn) {
@@ -399,7 +387,6 @@ async function processOrder() {
             try {
                 const item = JSON.parse(directCheckoutItem);
                 cart = [item];
-                console.log('🛒 Using direct checkout item:', item);
             } catch (e) {
                 console.error('❌ Error parsing direct checkout:', e);
             }
@@ -412,8 +399,6 @@ async function processOrder() {
         if (cart.length === 0) {
             throw new Error('Giỏ hàng trống');
         }
-        
-        console.log('📦 Cart items:', cart);
         
         // 4. Prepare items for API
         const orderItems = cart.map(item => ({
@@ -449,12 +434,8 @@ async function processOrder() {
             }
         };
         
-        console.log('📤 Sending order to API:', formData);
-        
-        // 6. Send to API - KIỂM TRA ENDPOINT ĐÚNG
-        const apiEndpoint = '/api/order/create'; // Hoặc '/order/create'
-        console.log('🌐 API Endpoint:', apiEndpoint);
-        
+        // 6. Send to API
+        const apiEndpoint = '/api/order/create';      
         const response = await fetch(apiEndpoint, {
             method: 'POST',
             headers: {
@@ -463,11 +444,7 @@ async function processOrder() {
             body: JSON.stringify(formData)
         });
         
-        console.log('📥 Response status:', response.status);
-        
-        const result = await response.json();
-        console.log('📦 Response data:', result);
-        
+        const result = await response.json();        
         if (!response.ok) {
             throw new Error(result.message || `Lỗi ${response.status}: ${response.statusText}`);
         }
@@ -475,8 +452,6 @@ async function processOrder() {
         if (!result.success) {
             throw new Error(result.message || 'Đặt hàng thất bại');
         }
-        
-        console.log('✅ Order created successfully:', result);
         
         // 7. Clear cart and checkout data
         clearCartAfterOrder();
@@ -572,18 +547,7 @@ function showSuccessModal(orderId) {
 }
 
 // Show checkout notification
-function showCheckoutNotification(message, type = 'info') {
-    console.log(`📢 ${type.toUpperCase()}: ${message}`);
-    
-    // Hiển thị alert đơn giản
-    if (type === 'error') {
-        alert(`❌ ${message}`);
-    } else if (type === 'success') {
-        alert(`✅ ${message}`);
-    } else {
-        alert(`ℹ️ ${message}`);
-    }
-    
+function showCheckoutNotification(message, type = 'info') {    
     // Hoặc sử dụng notification element nếu có
     const notification = document.getElementById('cart-notification');
     if (notification) {

@@ -18,47 +18,134 @@ const orderController = {
     }
   },
 
-  getOrderDetail: async (req, res) => {
-    try {
-      const { id } = req.params;
-      const pool = await sql.connect(config);
-
-      const orderResult = await pool.request()
-        .input('id', sql.Int, id)
-        .query(`
-          SELECT o.*, c.FullName, c.Email, c.Phone, c.Address
-          FROM [Order] o
-          LEFT JOIN Customer c ON o.CustomerID = c.CustomerID
-          WHERE o.OrderID = @id
-        `);
-
-      if (orderResult.recordset.length === 0) {
-        return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
-      }
-
-      const detailResult = await pool.request()
-        .input('id', sql.Int, id)
-        .query(`
-          SELECT 
-            od.*,
-            p.ProductName, 
-            p.ImageURL,
-            ps.SizeName
-          FROM OrderDetail od
-          LEFT JOIN Product p ON od.ProductID = p.ProductID
-          LEFT JOIN ProductSize ps ON od.SizeID = ps.SizeID
-          WHERE od.OrderID = @id
-        `);
-
-      res.json({
-        order: orderResult.recordset[0],
-        orderDetails: fixedDetails  // Sử dụng fixedDetails
+getOrderDetail: async (req, res) => {
+  try {
+    console.log("=== GET ORDER DETAIL ===");
+    console.log("Order ID:", req.params.id);
+    
+    const { id } = req.params;
+    if (!id || isNaN(id)) {
+      console.log("❌ Invalid order ID");
+      return res.status(400).json({ 
+        success: false,
+        message: "ID đơn hàng không hợp lệ" 
       });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Lỗi server" });
     }
-  },
+
+    const pool = await sql.connect(config);
+    console.log("✅ Database connected");
+
+    // Get order info - ĐƠN GIẢN HÓA QUERY TRƯỚC
+    console.log("📦 Querying order info...");
+    const orderResult = await pool.request()
+      .input('id', sql.Int, parseInt(id))
+      .query(`
+        SELECT TOP 1 
+          o.OrderID,
+          o.CustomerID,
+          o.TotalPrice,
+          o.Status,
+          o.OrderDate,
+          o.ShippingAddress,
+          o.PaymentMethod,
+          o.Note,
+          o.ShippingFee,
+          o.DiscountAmount,
+          c.FullName,
+          c.Email,
+          c.Phone,
+          c.Address as CustomerAddress
+        FROM [Order] o
+        LEFT JOIN Customer c ON o.CustomerID = c.CustomerID
+        WHERE o.OrderID = @id
+      `);
+
+    console.log("📊 Order result rows:", orderResult.recordset.length);
+
+    if (orderResult.recordset.length === 0) {
+      console.log("❌ Order not found");
+      return res.status(404).json({ 
+        success: false,
+        message: "Không tìm thấy đơn hàng" 
+      });
+    }
+
+    // Get order details - ĐƠN GIẢN HÓA
+    console.log("📋 Querying order details...");
+    const detailResult = await pool.request()
+      .input('id', sql.Int, parseInt(id))
+      .query(`
+        SELECT 
+          od.OrderDetailID,
+          od.ProductID,
+          od.Quantity,
+          od.UnitPrice,
+          od.Discount,
+          od.SizeID,
+          p.ProductName,
+          p.ImageURL
+        FROM OrderDetail od
+        LEFT JOIN Product p ON od.ProductID = p.ProductID
+        WHERE od.OrderID = @id
+      `);
+
+    console.log("📊 Detail result rows:", detailResult.recordset.length);
+
+    // Fix image URLs - ĐƠN GIẢN
+    const fixedDetails = detailResult.recordset.map((item, index) => {
+      console.log(`🖼️ Item ${index} ImageURL:`, item.ImageURL);
+      
+      let imageUrl = item.ImageURL || '';
+      
+      if (imageUrl && imageUrl.startsWith('image/')) {
+        imageUrl = '/' + imageUrl;
+      } else if (imageUrl && !imageUrl.startsWith('/') && !imageUrl.startsWith('http')) {
+        imageUrl = '/image/' + imageUrl;
+      } else if (!imageUrl) {
+        imageUrl = '/image/default-product.jpg';
+      }
+      
+      return {
+        OrderID: id,
+        ProductID: item.ProductID,
+        ProductName: item.ProductName || 'Sản phẩm',
+        Quantity: item.Quantity || 1,
+        UnitPrice: item.UnitPrice || 0,
+        Price: item.UnitPrice || 0, // Alias
+        Discount: item.Discount || 0,
+        SizeID: item.SizeID,
+        ImageURL: imageUrl
+      };
+    });
+
+    console.log("✅ Successfully processed order details");
+
+    res.json({
+      success: true,
+      order: orderResult.recordset[0],
+      orderDetails: fixedDetails
+    });
+
+  } catch (err) {
+    console.error("❌❌❌ ERROR in getOrderDetail:");
+    console.error("Error name:", err.name);
+    console.error("Error message:", err.message);
+    console.error("Error code:", err.code);
+    console.error("Error number:", err.number);
+    console.error("Error stack:", err.stack);
+    
+    // Log thêm thông tin SQL nếu có
+    if (err.originalError) {
+      console.error("Original error:", err.originalError);
+    }
+    
+    res.status(500).json({ 
+      success: false,
+      message: "Lỗi server khi lấy chi tiết đơn hàng",
+      error: err.message
+    });
+  }
+},
 
   updateOrderStatus: async (req, res) => {
     try {

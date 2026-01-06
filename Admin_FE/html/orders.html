@@ -539,25 +539,93 @@
 
     // Xem chi tiết đơn hàng - MODAL
     async function viewOrderDetail(orderId) {
-        try {
-            console.log("🔍 Loading order details for:", orderId);
+    try {
+        console.log("🔍 Loading order details for:", orderId);
+        
+        const response = await fetch(`/order/${orderId}`);
+        
+        console.log("📥 Response status:", response.status);
+        
+        // Kiểm tra content-type
+        const contentType = response.headers.get('content-type');
+        console.log("📥 Content-Type:", contentType);
+        
+        if (!response.ok) {
+            // Thử đọc response text để xem lỗi chi tiết
+            const errorText = await response.text();
+            console.error("❌ Error response:", errorText);
             
-            const response = await fetch(`/order/${orderId}`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            // Try to parse as JSON if possible
+            let errorData = { message: `HTTP error! status: ${response.status}` };
+            try {
+                errorData = JSON.parse(errorText);
+            } catch (e) {
+                // Not JSON, use text
+                errorData.message = errorText.substring(0, 200);
             }
             
-            const orderData = await response.json();
-            console.log("📋 Order details:", orderData);
-            
-            showOrderDetailModal(orderData);
-            
-        } catch (error) {
-            console.error('❌ Lỗi khi tải chi tiết đơn hàng:', error);
-            alert('Lỗi khi tải chi tiết đơn hàng: ' + error.message);
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
         }
+        
+        const orderData = await response.json();
+        console.log("📋 Order details loaded:", orderData);
+        
+        if (!orderData.success) {
+            throw new Error(orderData.message || 'Failed to load order details');
+        }
+        
+        showOrderDetailModal(orderData);
+        
+    } catch (error) {
+        console.error('❌ Lỗi khi tải chi tiết đơn hàng:', error);
+        
+        // Hiển thị thông báo user-friendly
+        let errorMessage = error.message;
+        if (errorMessage.includes('500')) {
+            errorMessage = 'Lỗi máy chủ. Vui lòng thử lại sau.';
+        } else if (errorMessage.includes('404')) {
+            errorMessage = 'Không tìm thấy đơn hàng.';
+        }
+        
+        alert(`Lỗi khi tải chi tiết đơn hàng: ${errorMessage}`);
+        
+        // Fallback: Show simple modal with basic info
+        showSimpleOrderModal(orderId);
     }
+}
+
+// Fallback function
+function showSimpleOrderModal(orderId) {
+    const modalHTML = `
+        <div class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Đơn hàng #ORD-${orderId}</h2>
+                    <button class="close-modal" onclick="closeModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Không thể tải đầy đủ thông tin</h3>
+                        <p>Mã đơn hàng: <strong>#ORD-${orderId}</strong></p>
+                        <p>Vui lòng thử lại sau hoặc liên hệ quản trị viên.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Xóa modal cũ nếu có
+    const existingModal = document.querySelector('.modal-overlay');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Thêm modal mới
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
 
     function fixImageUrl(imageUrl) {
         if (!imageUrl) return '/image/default-product.jpg';

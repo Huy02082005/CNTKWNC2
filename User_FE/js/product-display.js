@@ -1,7 +1,3 @@
-// ========== PRODUCT DISPLAY COMPONENT ==========
-// File: /User_FE/js/product-display.js
-// Pure UI Component - Tái sử dụng trên toàn website
-
 class ProductDisplay {
     constructor(options = {}) {
         // Config từ ImageUtils
@@ -210,6 +206,14 @@ class ProductDisplay {
                 e.stopPropagation();
                 e.preventDefault();
                 
+                // KIỂM TRA ĐĂNG NHẬP TRƯỚC KHI THÊM VÀO GIỎ HÀNG
+                if (!self.isUserLoggedIn()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    self.showLoginRequiredAlert('thêm sản phẩm vào giỏ hàng');
+                    return false;
+                }
+                
                 const productId = this.dataset.productId;
                 console.log(`🛒 [ProductDisplay] Add to cart clicked: ${productId}`);
                 
@@ -237,6 +241,14 @@ class ProductDisplay {
                         return;
                     }
                     
+                    // KIỂM TRA ĐĂNG NHẬP TRƯỚC KHI XEM CHI TIẾT
+                    if (!self.isUserLoggedIn()) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        self.showLoginRequiredAlert('xem chi tiết sản phẩm');
+                        return false;
+                    }
+                    
                     const productId = this.dataset.productId;
                     console.log(`👉 [ProductDisplay] Product card clicked: ${productId}`);
                     
@@ -252,6 +264,53 @@ class ProductDisplay {
         }
     }
     
+    // ========== AUTH CHECK METHODS ==========
+    
+    isUserLoggedIn() {
+        // Sử dụng authCheck nếu có
+        if (window.authCheck && window.authCheck.isLoggedIn) {
+            return window.authCheck.isLoggedIn();
+        }
+        
+        // Fallback kiểm tra đơn giản
+        try {
+            const user = localStorage.getItem('user');
+            if (!user) return false;
+            
+            const userData = JSON.parse(user);
+            return userData && typeof userData === 'object' && Object.keys(userData).length > 0;
+        } catch (e) {
+            return false;
+        }
+    }
+    
+    showLoginRequiredAlert(action = 'thực hiện chức năng này') {
+        // Sử dụng authCheck nếu có
+        if (window.authCheck && window.authCheck.showLoginRequiredAlert) {
+            return window.authCheck.showLoginRequiredAlert(action);
+        }
+        
+        // Fallback hiển thị alert
+        const confirmed = confirm(`Bạn cần đăng nhập để ${action}.\n\nBấm OK để chuyển đến trang đăng nhập.`);
+        if (confirmed) {
+            this.redirectToLogin();
+        }
+        return false;
+    }
+    
+    redirectToLogin() {
+        // Sử dụng authCheck nếu có
+        if (window.authCheck && window.authCheck.redirectToLogin) {
+            return window.authCheck.redirectToLogin();
+        }
+        
+        // Fallback chuyển hướng
+        const currentUrl = window.location.pathname + window.location.search + window.location.hash;
+        localStorage.setItem('redirectAfterLogin', currentUrl);
+        window.location.href = '/html/login.html';
+        return false;
+    }
+    
     // ========== DEFAULT HANDLERS ==========
     
     handleAddToCartDefault(productId, event) {
@@ -260,6 +319,9 @@ class ProductDisplay {
         // 1. Lấy thông tin sản phẩm
         const productElement = event.target.closest('.product-card');
         const productData = this.getProductDataFromElement(productElement, productId);
+        
+        // 2. Thêm vào localStorage
+        this.addToCartLocalStorage(productData);
         
         // 3. Hiển thị thông báo
         this.showAddToCartNotification(productData.name);

@@ -61,7 +61,6 @@
           <div class="stat-info">
             <h3>Tổng Admin</h3>
             <h2 id="totalAdmins">0</h2>
-            <p id="adminChange"><i class="fas fa-arrow-up text-success"></i> 0% so với tháng trước</p>
           </div>
           <div class="stat-icon bg-primary">
             <i class="fas fa-user-shield"></i>
@@ -74,7 +73,6 @@
           <div class="stat-info">
             <h3>Admin Đang Hoạt Động</h3>
             <h2 id="activeAdmins">0</h2>
-            <p id="activeChange"><i class="fas fa-arrow-up text-success"></i> 0% so với tháng trước</p>
           </div>
           <div class="stat-icon bg-success">
             <i class="fas fa-user-check"></i>
@@ -87,7 +85,6 @@
           <div class="stat-info">
             <h3>Super Admin</h3>
             <h2 id="superAdmins">0</h2>
-            <p id="superChange"><i class="fas fa-minus text-secondary"></i> Không thay đổi</p>
           </div>
           <div class="stat-icon bg-warning">
             <i class="fas fa-crown"></i>
@@ -120,8 +117,6 @@
             <th>Họ tên</th>
             <th>Email</th>
             <th>Điện thoại</th>
-            <th>Ngày tạo</th>
-            <th>Đăng nhập gần nhất</th>
             <th>Quyền</th>
             <th>Trạng thái</th>
             <th>Thao tác</th>
@@ -274,7 +269,7 @@ async function checkAuthAndPermission() {
         document.querySelector('.user-info p').textContent = "👑 Super Admin";
         
         // 4. Tải dữ liệu
-        await loadAdmins(user.id);
+        await loadAdmins();
         await loadAdminStats();
         
         // 5. Setup menu
@@ -283,7 +278,7 @@ async function checkAuthAndPermission() {
     } catch (error) {
         console.error('❌ Lỗi kiểm tra auth:', error);
         alert("Lỗi xác thực! Vui lòng đăng nhập lại.");
-        window.location.href = "/login.html";
+        window.location.href = "/admin/html/login.html";
     }
 }
 
@@ -312,7 +307,7 @@ function setupMenuActive() {
     });
 }
 
-// Hàm tải danh sách admin - SỬA
+// Hàm tải danh sách admin - SỬA LẠI PHẦN NÀY
 async function loadAdmins() {
     try {
         const response = await fetch('/api/admin', {
@@ -331,8 +326,17 @@ async function loadAdmins() {
             throw new Error('Lỗi API: ' + response.status);
         }
         
-        allAdmins = await response.json();
-        console.log("👥 Admins nhận được:", allAdmins.length);
+        const result = await response.json();
+        console.log("👥 API Response:", result);
+        
+        // QUAN TRỌNG: Lấy data từ response (đây là nguyên nhân lỗi)
+        if (result.success && result.data) {
+            allAdmins = result.data; // Lấy mảng admin từ result.data
+        } else {
+            allAdmins = [];
+        }
+        
+        console.log("👥 Admins nhận được:", allAdmins.length, allAdmins);
         
         filteredAdmins = [...allAdmins];
         renderAdminsTable();
@@ -352,7 +356,7 @@ async function loadAdmins() {
     }
 }
 
-// Hàm tải thống kê admin - SỬA
+// Hàm tải thống kê admin - SỬA LẠI TƯƠNG TỰ
 async function loadAdminStats() {
     try {
         const response = await fetch('/api/admin/stats', {
@@ -361,10 +365,15 @@ async function loadAdminStats() {
         
         if (!response.ok) throw new Error('Lỗi khi tải thống kê');
         
-        const stats = await response.json();
-        console.log("📊 Stats nhận được:", stats);
+        const result = await response.json();
+        console.log("📊 Stats response:", result);
         
-        updateStatsUI(stats);
+        // Lấy data từ response
+        if (result.success && result.data) {
+            updateStatsUI(result.data);
+        } else {
+            showFallbackStats();
+        }
         
     } catch (error) {
         console.error('❌ Lỗi khi tải thống kê:', error);
@@ -405,20 +414,24 @@ function renderAdminsTable() {
         const row = document.createElement('tr');
         
         row.innerHTML = `
-            <td>${admin.AccountID}</td>
-            <td>${admin.Username}</td>
-            <td>${admin.FullName || 'Chưa cập nhật'}</td>
-            <td>${admin.Email || 'Chưa cập nhật'}</td>
-            <td>${admin.Phone || 'Chưa cập nhật'}</td>
-            <td>${formatDate(admin.CreateDate)}</td>
-            <td>${admin.LastLogin ? formatDate(admin.LastLogin) : 'Chưa đăng nhập'}</td>
-            <td><span class="status ${admin.IsSuperAdmin ? 'warning' : ''}">${admin.IsSuperAdmin ? 'Super Admin' : 'Admin'}</span></td>
-            <td><span class="status ${admin.Status ? 'active' : 'pending'}">${admin.Status ? 'Hoạt động' : 'Đã khóa'}</span></td>
-            <td>
-                <button class="btn btn-outline" onclick="editAdmin(${admin.AccountID})">Sửa</button>
-                <button class="btn btn-danger" onclick="confirmDelete(${admin.AccountID})">Xóa</button>
-            </td>
-        `;
+          <td>${admin.AccountID}</td>
+          <td><strong>${admin.Username}</strong></td>
+          <td>${admin.FullName || 'Chưa cập nhật'}</td>
+          <td><a href="mailto:${admin.Email || '#'}" style="color: #3b82f6; text-decoration: none;">${admin.Email || 'Chưa cập nhật'}</a></td>
+          <td>${admin.Phone || 'Chưa cập nhật'}</td>
+          <td><span class="status ${admin.IsSuperAdmin ? 'warning' : 'info'}">${admin.IsSuperAdmin ? 'SUPER ADMIN' : 'ADMIN'}</span></td>
+          <td><span class="status ${admin.Status ? 'active' : 'pending'}">${admin.Status ? 'HOẠT ĐỘNG' : 'ĐÃ KHÓA'}</span></td>
+          <td>
+              <div class="action-buttons">
+                  <button class="btn-action btn-edit" onclick="editAdmin(${admin.AccountID})">
+                      <i class="fas fa-edit"></i> Sửa
+                  </button>
+                  <button class="btn-action btn-delete" onclick="confirmDelete(${admin.AccountID})">
+                      <i class="fas fa-trash"></i> Xóa
+                  </button>
+              </div>
+          </td>
+      `;
         
         tbody.appendChild(row);
     });
@@ -525,7 +538,13 @@ async function editAdmin(accountId) {
         
         if (!response.ok) throw new Error('Lỗi khi tải thông tin admin');
         
-        const admin = await response.json();
+        const result = await response.json();
+        
+        if (!result.success || !result.data) {
+            throw new Error('Không có dữ liệu admin');
+        }
+        
+        const admin = result.data;
         
         document.getElementById('modalTitle').textContent = 'Sửa Thông Tin Admin';
         document.getElementById('adminId').value = admin.AccountID;
@@ -543,7 +562,7 @@ async function editAdmin(accountId) {
         
     } catch (error) {
         console.error('❌ Lỗi khi tải thông tin admin:', error);
-        alert('Không thể tải thông tin admin');
+        alert('Không thể tải thông tin admin: ' + error.message);
     }
 }
 
@@ -594,12 +613,12 @@ async function saveAdmin(event) {
             credentials: 'include' // Gửi cookies
         });
         
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Lỗi khi lưu admin');
+        const result = await response.json();
+        
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || 'Lỗi khi lưu admin');
         }
         
-        const result = await response.json();
         console.log('✅ Admin đã được lưu:', result);
         
         closeAdminModal();
@@ -610,7 +629,8 @@ async function saveAdmin(event) {
         console.error('❌ Lỗi khi lưu admin:', error);
         alert('Lỗi khi lưu admin: ' + error.message);
     }
-}
+  }
+
 
 // Xác nhận xóa admin - GIỮ NGUYÊN
 function confirmDelete(accountId) {

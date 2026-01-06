@@ -49,8 +49,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Tải thông tin user từ DB - Version đơn giản hơn
     async function loadUserData() {
         try {
-            console.log(`📡 Loading user data for ID: ${currentCustomerId}`);
-            
             const response = await fetch(`/api/customer/profile/${currentCustomerId}`, {
                 method: 'GET',
                 headers: {
@@ -59,25 +57,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 credentials: 'include'
             });
             
-            console.log('Response status:', response.status);
-            console.log('Response headers:', response.headers);
-            
             const data = await response.json();
             console.log('Response data:', data);
             
             if (data.success && data.customer) {
-                console.log('✅ User data loaded successfully');
                 populateForm(data.customer);
                 originalData = { ...data.customer };
             } else {
                 console.log('❌ API returned error:', data.message);
-                // Fallback: sử dụng cookie data
                 fallbackToCookieData();
             }
             
         } catch (error) {
             console.error('❌ Error loading user data:', error);
-            // Fallback: sử dụng cookie data
             fallbackToCookieData();
         }
     }
@@ -122,13 +114,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Hiển thị thông tin khác
         document.getElementById('customerId').textContent = customer.CustomerID || '-';
-        document.getElementById('registerDate').textContent = customer.RegisterDate ? 
-            formatDate(customer.RegisterDate) : 'Chưa có';
-        document.getElementById('lastLogin').textContent = customer.LastLogin ? 
-            formatDate(customer.LastLogin) : 'Chưa có';
-        document.getElementById('status').textContent = customer.Status === 1 ? 
-            '<span style="color: green;">● Hoạt động</span>' : 
-            '<span style="color: red;">● Bị khóa</span>';
     }
     
     // Format ngày tháng

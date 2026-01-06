@@ -347,77 +347,105 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Xử lý form reset password
-    document.getElementById('resetForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const newPassword = document.getElementById('new-password').value;
-        const confirmPassword = document.getElementById('confirm-password').value;
-        
-        // Validate
-        if (!newPassword || !confirmPassword) {
-            showMessage('Vui lòng nhập đầy đủ thông tin!', 'error');
-            return;
-        }
-        
-        if (newPassword.length < 6) {
-            showMessage('Mật khẩu phải có ít nhất 6 ký tự!', 'error');
-            return;
-        }
-        
-        if (newPassword !== confirmPassword) {
-            showMessage('Mật khẩu xác nhận không khớp!', 'error');
-            return;
-        }
+document.getElementById('resetForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const newPassword = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    
+    // Validate
+    if (!newPassword || !confirmPassword) {
+        showMessage('Vui lòng nhập đầy đủ thông tin!', 'error');
+        return;
+    }
+    
+    if (newPassword.length < 6) {
+        showMessage('Mật khẩu phải có ít nhất 6 ký tự!', 'error');
+        return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        showMessage('Mật khẩu xác nhận không khớp!', 'error');
+        return;
+    }
 
+    try {
+        // Hiển thị loading
+        const submitBtn = this.querySelector('.btn-primary');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Đang đặt lại...';
+        submitBtn.disabled = true;
+
+        console.log('🔄 Gửi yêu cầu reset password đến /api/customer/reset-password');
+        console.log('📧 Email:', currentEmail);
+        console.log('🔑 New password:', newPassword);
+        
+        // CHỈ GỌI ĐÚNG ENDPOINT NÀY
+        const response = await fetch(`${API_BASE_URL}/customer/reset-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: currentEmail,
+                newPassword: newPassword
+            })
+        });
+
+        // Lấy response text để debug
+        const responseText = await response.text();
+        console.log('📊 Response status:', response.status);
+        console.log('📊 Response text:', responseText);
+        
+        let result;
         try {
-            // Hiển thị loading
-            const submitBtn = this.querySelector('.btn-primary');
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Đang đặt lại...';
-            submitBtn.disabled = true;
-
-            // Gọi API reset password
-            const response = await fetch(`${API_BASE_URL}/customer/reset-password`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email: currentEmail,
-                    newPassword: newPassword
-                })
-            });
-
-            const result = await response.json();
-
+            result = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('❌ Failed to parse JSON:', parseError);
+            console.error('Raw response:', responseText);
+            
             // Khôi phục nút
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
-
-            if (result.success) {
-                showMessage('Đặt lại mật khẩu thành công!', 'success');
-                
-                // Hiển thị email trong bước thành công
-                document.getElementById('success-email').textContent = currentEmail;
-                
-                showStep(3);
-                
-                // Tự động chuyển về login sau 3 giây
-                setTimeout(() => {
-                    window.location.href = '/User_FE/html/login.html';
-                }, 3000);
+            
+            if (responseText.includes('<!DOCTYPE')) {
+                showMessage('Lỗi server! Vui lòng thử lại sau.', 'error');
             } else {
-                showMessage(result.message || 'Đặt lại mật khẩu thất bại!', 'error');
+                showMessage('Lỗi xử lý dữ liệu từ server', 'error');
             }
-
-        } catch (error) {
-            console.error('Error:', error);
-            const submitBtn = this.querySelector('.btn-primary');
-            submitBtn.textContent = 'Đặt lại mật khẩu';
-            submitBtn.disabled = false;
-            showMessage('Có lỗi xảy ra, vui lòng thử lại!', 'error');
+            return;
         }
-    });
+
+        // Khôi phục nút
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+
+        if (result.success) {
+            showMessage('Đặt lại mật khẩu thành công!', 'success');
+            showStep(3); // Chuyển đến bước thành công
+            
+            // Tự động chuyển về login sau 3 giây
+            setTimeout(() => {
+                window.location.href = '/html/login.html';
+            }, 3000);
+        } else {
+            // Hiển thị thông báo lỗi từ server
+            showMessage(result.message || 'Đặt lại mật khẩu thất bại!', 'error');
+            
+            // Nếu là lỗi mật khẩu trùng, focus lại input
+            if (result.message && result.message.includes('trùng')) {
+                document.getElementById('new-password').focus();
+                document.getElementById('new-password').select();
+            }
+        }
+
+    } catch (error) {
+        console.error('❌ Network error:', error);
+        const submitBtn = this.querySelector('.btn-primary');
+        submitBtn.textContent = 'Đặt lại mật khẩu';
+        submitBtn.disabled = false;
+        showMessage('Không thể kết nối đến server!', 'error');
+    }
+});
 
     // Gửi lại OTP
     document.getElementById('resend-otp').addEventListener('click', async function(e) {

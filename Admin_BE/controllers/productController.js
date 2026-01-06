@@ -2,8 +2,8 @@ const sql = require("mssql");
 const config = require("../config/db");
 
 const productController = {
-    getAllProducts: async (req, res) => {
-     try {
+  getAllProducts: async (req, res) => {
+    try {
       let pool = req.app.locals.db;
       
       if (!pool || !pool.connected) {
@@ -11,45 +11,57 @@ const productController = {
         req.app.locals.db = pool;
       }
 
-    // SỬA QUERY NÀY - BỎ JOIN ProductSize
-    const result = await pool.request().query(`
-      SELECT 
-        p.*, 
-        c.CategoryName, 
-        b.BrandName, 
-        l.LeagueName,
-        -- Thay thế bằng cách lấy size từ ProductSizeMapping
-        STUFF((
-          SELECT DISTINCT ', ' + ps.SizeName
-          FROM ProductSizeMapping psm
-          INNER JOIN ProductSize ps ON psm.SizeID = ps.SizeID
-          WHERE psm.ProductID = p.ProductID
-          AND psm.IsActive = 1
-          FOR XML PATH('')
-        ), 1, 2, '') AS SizeName
-      FROM Product p
-      LEFT JOIN Category c ON p.CategoryID = c.CategoryID
-      LEFT JOIN Brand b ON p.BrandID = b.BrandID
-      LEFT JOIN League l ON p.LeagueID = l.LeagueID
-      ORDER BY p.ProductID DESC
-    `);
-    
+      // ĐẢM BẢO LẤY ImageURL
+      const result = await pool.request().query(`
+        SELECT 
+          p.ProductID,
+          p.ProductName,
+          p.Description,
+          p.CategoryID,
+          p.BrandID,
+          p.ImageURL, -- QUAN TRỌNG
+          p.ImportPrice,
+          p.SellingPrice,
+          p.Discount,
+          p.StockQuantity,
+          p.Unit,
+          p.LeagueID,
+          p.Season,
+          p.PlayerName,
+          p.Status,
+          p.CreateDate,
+          p.UpdateDate,
+          c.CategoryName, 
+          b.BrandName, 
+          l.LeagueName
+        FROM Product p
+        LEFT JOIN Category c ON p.CategoryID = c.CategoryID
+        LEFT JOIN Brand b ON p.BrandID = b.BrandID
+        LEFT JOIN League l ON p.LeagueID = l.LeagueID
+        ORDER BY p.ProductID DESC
+      `);
+      
+      console.log(`✅ Lấy được ${result.recordset.length} sản phẩm`);
+      
+      // Log vài sản phẩm để kiểm tra ảnh
+      if (result.recordset.length > 0) {
+        console.log('📸 Sample products with images:', 
+          result.recordset.slice(0, 3).map(p => ({
+            id: p.ProductID,
+            name: p.ProductName,
+            image: p.ImageURL
+          }))
+        );
+      }
+      
       res.json(result.recordset);
       
     } catch (err) {
-      console.error('❌ LỖI CHI TIẾT trong getAllProducts:');
-      console.error('❌ Error message:', err.message);
-      console.error('❌ Error code:', err.code);
-      console.error('❌ Error number:', err.number);
-      console.error('❌ Error state:', err.state);
-      console.error('❌ Error stack:', err.stack);
-
+      console.error('❌ LỖI trong getAllProducts:', err.message);
       res.status(500).json({ 
         success: false,
         message: "Lỗi server khi lấy sản phẩm",
-        error: err.message,
-        code: err.code,
-        details: "Kiểm tra console server để biết thêm chi tiết"
+        error: err.message
       });
     }
   },
@@ -93,110 +105,248 @@ const productController = {
     }
   },
 
+checkDuplicateProductName: async (req, res) => {
+    try {
+        const { productName, excludeId } = req.body;
+        
+        console.log('🔍 API checkDuplicateProductName called with:', { productName, excludeId });
+        
+        if (!productName || productName.trim() === '') {
+            return res.json({ 
+                success: false, 
+                isDuplicate: false,
+                message: "Tên sản phẩm không hợp lệ" 
+            });
+        }
+        
+        const pool = req.app.locals.db;
+        
+        if (!pool) {
+            console.error('❌ Database pool not found');
+            return res.status(500).json({ 
+                success: false,
+                isDuplicate: false,
+                message: "Database connection error" 
+            });
+        }
+        
+        let query;
+        let request = pool.request();
+        
+        // Chuẩn hóa tên sản phẩm (loại bỏ khoảng trắng thừa và chuyển về chữ thường)
+        const normalizedProductName = productName.trim().toLowerCase();
+        
+        if (excludeId) {
+            // Kiểm tra khi chỉnh sửa (loại trừ sản phẩm hiện tại)
+            query = `
+                SELECT COUNT(*) as count 
+                FROM Product 
+                WHERE LOWER(RTRIM(LTRIM(ProductName))) = @productName
+                AND ProductID != @excludeId
+            `;
+            
+            request.input('productName', sql.NVarChar, normalizedProductName);
+            request.input('excludeId', sql.Int, parseInt(excludeId));
+        } else {
+            // Kiểm tra khi thêm mới
+            query = `
+                SELECT COUNT(*) as count 
+                FROM Product 
+                WHERE LOWER(RTRIM(LTRIM(ProductName))) = @productName
+            `;
+            
+            request.input('productName', sql.NVarChar, normalizedProductName);
+        }
+        
+        console.log('🔍 SQL Query:', query);
+        
+        const result = await request.query(query);
+        const count = result.recordset[0]?.count || 0;
+        const isDuplicate = count > 0;
+        
+        console.log(`🔍 Kiểm tra trùng tên: "${normalizedProductName}" - Kết quả: ${isDuplicate ? 'TRÙNG' : 'KHÔNG TRÙNG'} (count: ${count})`);
+        
+        res.json({
+            success: true,
+            isDuplicate: isDuplicate,
+            count: count,
+            message: isDuplicate ? 'Tên sản phẩm đã tồn tại' : 'Tên sản phẩm hợp lệ'
+        });
+        
+    } catch (err) {
+        console.error('❌ LỖI trong checkDuplicateProductName:', err.message);
+        console.error('Stack trace:', err.stack);
+        
+        res.status(500).json({ 
+            success: false,
+            isDuplicate: false,
+            message: "Lỗi server khi kiểm tra tên sản phẩm",
+            error: err.message
+        });
+    }
+},
+
   createProduct: async (req, res) => {
     try {
-      const {
-        ProductName, Description, CategoryID, BrandID, ImageURL,
-        ImportPrice, SellingPrice, Discount, StockQuantity, Unit,
-        LeagueID, SizeID, Season, PlayerName
-      } = req.body;
+        const {
+            ProductName, Description, CategoryID, BrandID, ImageURL,
+            ImportPrice, SellingPrice, Discount, StockQuantity, Unit,
+            LeagueID, Season, PlayerName, Status = 'active'
+        } = req.body;
 
-      const pool = await sql.connect(config);
-      const result = await pool.request()
-        .input('ProductName', sql.NVarChar, ProductName)
-        .input('Description', sql.NVarChar, Description)
-        .input('CategoryID', sql.Int, CategoryID)
-        .input('BrandID', sql.Int, BrandID)
-        .input('ImageURL', sql.NVarChar, ImageURL)
-        .input('ImportPrice', sql.Decimal(12,2), ImportPrice)
-        .input('SellingPrice', sql.Decimal(12,2), SellingPrice)
-        .input('Discount', sql.Decimal(5,2), Discount || 0)
-        .input('StockQuantity', sql.Int, StockQuantity || 0)
-        .input('Unit', sql.NVarChar, Unit)
-        .input('LeagueID', sql.Int, LeagueID || 1)
-        .input('SizeID', sql.Int, SizeID || null)  // Có thể để null
-        .input('Season', sql.NVarChar, Season)
-        .input('PlayerName', sql.NVarChar, PlayerName)
-        .query(`
-          INSERT INTO Product (ProductName, Description, CategoryID, BrandID, ImageURL, 
-          ImportPrice, SellingPrice, Discount, StockQuantity, Unit, LeagueID, SizeID, 
-          Season, PlayerName, CreateDate, UpdateDate)
-          OUTPUT INSERTED.*
-          VALUES (@ProductName, @Description, @CategoryID, @BrandID, @ImageURL,
-          @ImportPrice, @SellingPrice, @Discount, @StockQuantity, @Unit, @LeagueID,
-          @SizeID, @Season, @PlayerName, GETDATE(), GETDATE())
-        `);
+        // Kiểm tra trùng tên trước khi thêm mới
+        const pool = await sql.connect(config);
+        
+        // Kiểm tra trùng tên
+        const checkDuplicate = await pool.request()
+            .input('ProductName', sql.NVarChar, ProductName.trim())
+            .query(`
+                SELECT COUNT(*) as count 
+                FROM Product 
+                WHERE LOWER(TRIM(ProductName)) = LOWER(TRIM(@ProductName))
+            `);
+        
+        if (checkDuplicate.recordset[0]?.count > 0) {
+            return res.status(400).json({ 
+                message: "Tên sản phẩm đã tồn tại. Vui lòng chọn tên khác." 
+            });
+        }
 
-      res.status(201).json({
-        message: "Thêm sản phẩm thành công",
-        product: result.recordset[0]
-      });
+        // Xử lý BrandID và LeagueID có thể null
+        const result = await pool.request()
+            .input('ProductName', sql.NVarChar, ProductName)
+            .input('Description', sql.NVarChar, Description)
+            .input('CategoryID', sql.Int, CategoryID)
+            .input('BrandID', BrandID ? sql.Int : sql.NVarChar, BrandID || null)
+            .input('ImageURL', sql.NVarChar, ImageURL)
+            .input('ImportPrice', sql.Decimal(12,2), ImportPrice)
+            .input('SellingPrice', sql.Decimal(12,2), SellingPrice)
+            .input('Discount', sql.Decimal(5,2), Discount || 0)
+            .input('StockQuantity', sql.Int, StockQuantity || 0)
+            .input('Unit', sql.NVarChar, Unit || 'Cái')
+            .input('LeagueID', LeagueID ? sql.Int : sql.NVarChar, LeagueID || null)
+            .input('Season', sql.NVarChar, Season)
+            .input('PlayerName', sql.NVarChar, PlayerName)
+            .input('Status', sql.NVarChar, Status)
+            .query(`
+                INSERT INTO Product (
+                    ProductName, Description, CategoryID, BrandID, ImageURL, 
+                    ImportPrice, SellingPrice, Discount, StockQuantity, Unit, 
+                    LeagueID, Season, PlayerName, Status, CreateDate, UpdateDate
+                )
+                OUTPUT INSERTED.*
+                VALUES (
+                    @ProductName, @Description, @CategoryID, @BrandID, @ImageURL,
+                    @ImportPrice, @SellingPrice, @Discount, @StockQuantity, @Unit, 
+                    @LeagueID, @Season, @PlayerName, @Status, GETDATE(), GETDATE()
+                )
+            `);
+
+        res.status(201).json({
+            message: "Thêm sản phẩm thành công",
+            product: result.recordset[0]
+        });
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Lỗi server" });
+        console.error('❌ Lỗi trong createProduct:', err);
+        res.status(500).json({ 
+            message: "Lỗi server khi thêm sản phẩm",
+            error: err.message
+        });
     }
-  },
+},
 
-  updateProduct: async (req, res) => {
+ updateProduct: async (req, res) => {
     try {
-      const { id } = req.params;
-      const {
-        ProductName, Description, CategoryID, BrandID, ImageURL,
-        ImportPrice, SellingPrice, Discount, StockQuantity, Unit,
-        LeagueID, SizeID, Season, PlayerName, Status
-      } = req.body;
+        const { id } = req.params;
+        const {
+            ProductName, Description, CategoryID, BrandID, ImageURL,
+            ImportPrice, SellingPrice, Discount, StockQuantity, Unit,
+            LeagueID, Season, PlayerName, Status
+        } = req.body;
+        
+        console.log('🔄 Update product ID:', id);
+        console.log('📦 Data received:', {
+            ProductName, ImageURL, CategoryID, BrandID, LeagueID
+        });
 
-      const pool = await sql.connect(config);
-      const result = await pool.request()
-        .input('id', sql.Int, id)
-        .input('ProductName', sql.NVarChar, ProductName)
-        .input('Description', sql.NVarChar, Description)
-        .input('CategoryID', sql.Int, CategoryID)
-        .input('BrandID', sql.Int, BrandID)
-        .input('ImageURL', sql.NVarChar, ImageURL)
-        .input('ImportPrice', sql.Decimal(12,2), ImportPrice)
-        .input('SellingPrice', sql.Decimal(12,2), SellingPrice)
-        .input('Discount', sql.Decimal(5,2), Discount)
-        .input('StockQuantity', sql.Int, StockQuantity)
-        .input('Unit', sql.NVarChar, Unit)
-        .input('LeagueID', sql.Int, LeagueID || 1)
-        .input('SizeID', sql.Int, SizeID || null)  // Có thể để null
-        .input('Season', sql.NVarChar, Season)
-        .input('PlayerName', sql.NVarChar, PlayerName)
-        .input('Status', sql.NVarChar, Status)
-        .query(`
-          UPDATE Product SET
-            ProductName = @ProductName,
-            Description = @Description,
-            CategoryID = @CategoryID,
-            BrandID = @BrandID,
-            ImageURL = @ImageURL,
-            ImportPrice = @ImportPrice,
-            SellingPrice = @SellingPrice,
-            Discount = @Discount,
-            StockQuantity = @StockQuantity,
-            Unit = @Unit,
-            LeagueID = @LeagueID,
-            SizeID = @SizeID,
-            Season = @Season,
-            PlayerName = @PlayerName,
-            Status = @Status,
-            UpdateDate = GETDATE()
-          WHERE ProductID = @id
-        `);
+        const pool = await sql.connect(config);
+        
+        // Kiểm tra trùng tên (loại trừ sản phẩm hiện tại)
+        const checkDuplicate = await pool.request()
+            .input('ProductName', sql.NVarChar, ProductName.trim())
+            .input('ProductID', sql.Int, id)
+            .query(`
+                SELECT COUNT(*) as count 
+                FROM Product 
+                WHERE LOWER(TRIM(ProductName)) = LOWER(TRIM(@ProductName))
+                AND ProductID != @ProductID
+            `);
+        
+        if (checkDuplicate.recordset[0]?.count > 0) {
+            return res.status(400).json({ 
+                message: "Tên sản phẩm đã tồn tại. Vui lòng chọn tên khác." 
+            });
+        }
+        
+        const result = await pool.request()
+            .input('id', sql.Int, id)
+            .input('ProductName', sql.NVarChar, ProductName)
+            .input('Description', sql.NVarChar, Description || '')
+            .input('CategoryID', sql.Int, CategoryID)
+            .input('BrandID', BrandID ? sql.Int : sql.NVarChar, BrandID || null)
+            .input('ImageURL', sql.NVarChar, ImageURL || '')
+            .input('ImportPrice', sql.Decimal(12,2), ImportPrice)
+            .input('SellingPrice', sql.Decimal(12,2), SellingPrice)
+            .input('Discount', sql.Decimal(5,2), Discount || 0)
+            .input('StockQuantity', sql.Int, StockQuantity || 0)
+            .input('Unit', sql.NVarChar, Unit || 'Cái')
+            .input('LeagueID', LeagueID ? sql.Int : sql.NVarChar, LeagueID || null)
+            .input('Season', sql.NVarChar, Season || '')
+            .input('PlayerName', sql.NVarChar, PlayerName || '')
+            .input('Status', sql.NVarChar, Status || 'active')
+            .query(`
+                UPDATE Product SET
+                    ProductName = @ProductName,
+                    Description = @Description,
+                    CategoryID = @CategoryID,
+                    BrandID = @BrandID,
+                    ImageURL = @ImageURL,
+                    ImportPrice = @ImportPrice,
+                    SellingPrice = @SellingPrice,
+                    Discount = @Discount,
+                    StockQuantity = @StockQuantity,
+                    Unit = @Unit,
+                    LeagueID = @LeagueID,
+                    Season = @Season,
+                    PlayerName = @PlayerName,
+                    Status = @Status,
+                    UpdateDate = GETDATE()
+                WHERE ProductID = @id
+                
+                SELECT * FROM Product WHERE ProductID = @id
+            `);
 
-      if (result.rowsAffected[0] === 0) {
-        return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
-      }
+        if (result.rowsAffected[0] === 0) {
+            return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+        }
 
-      res.json({ message: "Cập nhật sản phẩm thành công" });
+        const updatedProduct = result.recordset[0];
+        console.log('✅ Product updated:', updatedProduct);
+
+        res.json({ 
+            message: "Cập nhật sản phẩm thành công",
+            product: updatedProduct 
+        });
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Lỗi server" });
+        console.error('❌ Lỗi trong updateProduct:', err);
+        res.status(500).json({ 
+            message: "Lỗi server", 
+            error: err.message,
+            details: err.stack 
+        });
     }
-  },
+},
 
-  // Các hàm khác giữ nguyên...
   deleteProduct: async (req, res) => {
     try {
       const { id } = req.params;
@@ -224,11 +374,11 @@ const productController = {
     } catch (err) {
       console.error('❌ Lỗi khi tải danh mục:', err);
       res.json([
-        { CategoryID: 1, CategoryName: "Áo bóng đá" },
-        { CategoryID: 2, CategoryName: "Quần bóng đá" },
-        { CategoryID: 3, CategoryName: "Giày bóng đá" },
-        { CategoryID: 4, CategoryName: "Phụ kiện" },
-        { CategoryID: 5, CategoryName: "Áo khoác thể thao" }
+        { CategoryID: 1, CategoryName: "Áo đấu" },
+        { CategoryID: 2, CategoryName: "Giày bóng đá" },
+        { CategoryID: 3, CategoryName: "Phụ kiện" },
+        { CategoryID: 4, CategoryName: "Áo khoác thể thao" },
+        { CategoryID: 5, CategoryName: "Găng tay thủ môn" }
       ]);
     }
   },
@@ -271,35 +421,6 @@ const productController = {
       ]);
     }
   },
-
-  getAllSizes: async (req, res) => {
-    try {
-      const pool = await sql.connect(config);
-      const result = await pool.request().query('SELECT * FROM ProductSize ORDER BY SizeID');
-      res.json(result.recordset);
-    } catch (err) {
-      console.error('❌ Lỗi khi tải kích thước:', err);
-      res.json([
-        { SizeID: 1, SizeName: "S", SizeType: "Áo" },
-        { SizeID: 2, SizeName: "M", SizeType: "Áo" },
-        { SizeID: 3, SizeName: "L", SizeType: "Áo" },
-        { SizeID: 4, SizeName: "XL", SizeType: "Áo" },
-        { SizeID: 5, SizeName: "XXL", SizeType: "Áo" },
-        { SizeID: 6, SizeName: "39", SizeType: "Giày" },
-        { SizeID: 7, SizeName: "40", SizeType: "Giày" },
-        { SizeID: 8, SizeName: "41", SizeType: "Giày" },
-        { SizeID: 9, SizeName: "42", SizeType: "Giày" },
-        { SizeID: 10, SizeName: "43", SizeType: "Giày" },
-        { SizeID: 11, SizeName: "44", SizeType: "Giày" },
-        { SizeID: 12, SizeName: "6", SizeType: "Găng tay" },
-        { SizeID: 13, SizeName: "7", SizeType: "Găng tay" },
-        { SizeID: 14, SizeName: "8", SizeType: "Găng tay" },
-        { SizeID: 15, SizeName: "9", SizeType: "Găng tay" },
-        { SizeID: 16, SizeName: "10", SizeType: "Găng tay" },
-        { SizeID: 17, SizeName: "11", SizeType: "Găng tay" }
-      ]);
-    }
-  }
 };
 
 module.exports = productController;

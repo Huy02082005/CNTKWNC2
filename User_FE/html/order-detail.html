@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết đơn hàng - FOOTBALLSTORE</title>
+    <link rel="stylesheet" href="/css/auth-simple.css">
+    <link rel="stylesheet" href="/css/order-history.css">
+    <link rel="stylesheet" href="/css/home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <h1>FOOTBALL<span>STORE</span></h1>
+                <p>Đồng phục bóng đá chính hãng</p>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="/html/home.html">Trang chủ</a></li>
+                    <li class="dropdown">
+                        <a href="/html/see_all.html">Sản phẩm <i class="fas fa-chevron-down"></i></a>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-column">
+                                <a href="/html/clothes.html"><h4>Quần áo</h4></a>
+                            </div>
+                            <div class="dropdown-column">
+                                <a href="/html/shoes.html"><h4>Giày</h4></a>
+                            </div>
+                            <div class="dropdown-column">
+                                <a href="/html/gloves.html"><h4>Găng tay thủ môn</h4></a>
+                            </div>
+                            <div class="dropdown-column">
+                                <a href="/html/accessories.html"><h4>Phụ kiện</h4></a>
+                            </div>
+                        </div>
+                    </li>
+                    <li><a href="/html/introduction.html">Giới thiệu</a></li>
+                    <li><a href="/html/contact.html">Liên hệ</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <div class="cart-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </div>
+                <div class="user-actions">
+                    <!-- JavaScript sẽ thêm dropdown vào đây -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="order-detail-page">
+        <div class="container">
+            <!-- Header với breadcrumb -->
+            <div class="page-header">
+                <nav class="breadcrumb">
+                    <a href="/html/home.html">Trang chủ</a>
+                    <i class="fas fa-chevron-right"></i>
+                    <a href="/html/order-history.html">Lịch sử mua hàng</a>
+                    <i class="fas fa-chevron-right"></i>
+                    <span id="orderNumber">Đơn hàng #</span>
+                </nav>
+                <h1 class="page-title">Chi tiết đơn hàng</h1>
+                <p class="page-subtitle" id="orderStatusText">Đang tải thông tin...</p>
+            </div>
+
+            <!-- Loading State -->
+            <div class="loading-state" id="loadingState">
+                <div class="loading-spinner"></div>
+                <p>Đang tải chi tiết đơn hàng...</p>
+            </div>
+
+            <!-- Order Details (sẽ được thêm động) -->
+            <div class="order-detail-container" id="orderDetailContainer" style="display: none;">
+                
+                <!-- Order Summary -->
+                <div class="order-summary-card">
+                    <div class="order-summary-header">
+                        <h3><i class="fas fa-clipboard-list"></i> Thông tin đơn hàng</h3>
+                        <span class="order-status-badge" id="orderStatusBadge"></span>
+                    </div>
+                    
+                    <div class="order-summary-body">
+                        <div class="order-info-grid">
+                            <div class="info-item">
+                                <span class="info-label"><i class="far fa-calendar"></i> Ngày đặt:</span>
+                                <span class="info-value" id="orderDate"></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label"><i class="fas fa-hashtag"></i> Mã đơn hàng:</span>
+                                <span class="info-value" id="orderIdDisplay"></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label"><i class="fas fa-credit-card"></i> Phương thức thanh toán:</span>
+                                <span class="info-value" id="paymentMethod"></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label"><i class="fas fa-truck"></i> Phí vận chuyển:</span>
+                                <span class="info-value" id="shippingFee"></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label"><i class="fas fa-tag"></i> Giảm giá:</span>
+                                <span class="info-value" id="discountAmount"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="order-summary-footer">
+                        <div class="order-total">
+                            <span>Tổng cộng:</span>
+                            <span class="total-amount" id="totalPrice"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shipping Information -->
+                <div class="shipping-info-card">
+                    <h3><i class="fas fa-map-marker-alt"></i> Thông tin giao hàng</h3>
+                    <div class="shipping-details">
+                        <p id="shippingAddress">Đang tải...</p>
+                        <p id="customerInfo">Đang tải...</p>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="order-items-card">
+                    <h3><i class="fas fa-box"></i> Sản phẩm đã đặt</h3>
+                    
+                    <div class="order-items-list" id="orderItemsList">
+                        <!-- Danh sách sản phẩm sẽ được thêm ở đây -->
+                        <div class="loading-items">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Đang tải sản phẩm...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="order-items-summary">
+                        <div class="summary-row">
+                            <span>Tạm tính:</span>
+                            <span id="subtotal">0 ₫</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Phí vận chuyển:</span>
+                            <span id="shippingFeeDisplay">0 ₫</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Giảm giá:</span>
+                            <span id="discountDisplay">0 ₫</span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>Tổng cộng:</span>
+                            <span id="grandTotal">0 ₫</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Actions -->
+                <div class="order-actions-card">
+                    <h3><i class="fas fa-cog"></i> Thao tác</h3>
+                    <div class="action-buttons" id="actionButtons">
+                        <button class="btn btn-outline" onclick="window.history.back()">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </button>
+                        <button class="btn btn-primary" id="printOrderBtn">
+                            <i class="fas fa-print"></i> In đơn hàng
+                        </button>
+                        <button class="btn btn-danger" id="cancelOrderBtn" style="display: none;">
+                            <i class="fas fa-times"></i> Hủy đơn hàng
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Order Timeline -->
+                <div class="order-timeline-card">
+                    <h3><i class="fas fa-history"></i> Lịch sử trạng thái</h3>
+                    <div class="timeline" id="orderTimeline">
+                        <div class="timeline-item">
+                            <div class="timeline-dot active"></div>
+                            <div class="timeline-content">
+                                <h4>Đơn hàng đã đặt</h4>
+                                <p id="orderDateTimeline">Đang tải...</p>
+                            </div>
+                        </div>
+                        <!-- Các mốc thời gian sẽ được thêm động -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Error State -->
+            <div class="error-state" id="errorState" style="display: none;">
+                <div class="error-icon">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <h3>Không thể tải chi tiết đơn hàng</h3>
+                <p id="errorMessage">Đã xảy ra lỗi khi tải thông tin đơn hàng.</p>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="window.history.back()">
+                        <i class="fas fa-arrow-left"></i> Quay lại
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>VỀ CHÚNG TÔI</h3>
+                <p>Chuyên cung cấp đồng phục bóng đá chính hãng, chất lượng cao với giá cả hợp lý.</p>
+                <p>Hotline: 0123456789</p>
+            </div>
+            <div class="footer-section">
+                <h3>LIÊN KẾT NHANH</h3>
+                <ul>
+                    <li><a href="/html/home.html">Trang chủ</a></li>
+                    <li><a href="/html/see_all.html">Sản phẩm</a></li>
+                    <li><a href="/html/introduction.html">Giới thiệu</a></li>
+                    <li><a href="/html/contact.html">Liên hệ</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>HỖ TRỢ</h3>
+                <ul>
+                    <li><a href="/html/contact.html#return-policy-section">Chính sách đổi trả</a></li>
+                    <li><a href="/html/contact.html#shopping-guide-section">Hướng dẫn mua hàng</a></li>
+                    <li><a href="/html/contact.html#faq-section">Câu hỏi thường gặp</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 FOOTBALLSTORE. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/js/auth-simple.js"></script>
+    <script src="/js/order-detail.js"></script>
+</body>
+</html>

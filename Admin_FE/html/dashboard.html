@@ -149,6 +149,7 @@
   .btn-primary {
     background-color: var(--primary);
     color: white;
+    text-decoration: none;
   }
 
   .btn-primary:hover {
@@ -157,7 +158,6 @@
 
   .btn-outline {
     background-color: transparent;
-    border: 1px solid var(--primary);
     color: var(--primary);
   }
 
@@ -386,7 +386,7 @@
           </a>
         </li>
         <li><a href="settings.html"><i class="fas fa-cog"></i> <span>Cài đặt</span></a></li>
-        <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> <span>Đăng xuất</span></a></li>
+        <li><a href="login.html" onclick="logout()"><i class="fas fa-sign-out-alt"></i> <span>Đăng xuất</span></a></li>
       </ul>
     </div>
   </div>
@@ -411,7 +411,6 @@
           <div class="stat-info">
             <h3>Tổng người dùng</h3>
             <h2 id="totalUsers">0</h2>
-            <p><i class="fas fa-arrow-up text-success"></i> <span id="userChange">0%</span> so với tháng trước</p>
           </div>
           <div class="stat-icon bg-primary">
             <i class="fas fa-users"></i>
@@ -424,7 +423,6 @@
           <div class="stat-info">
             <h3>Tổng đơn hàng</h3>
             <h2 id="totalOrders">0</h2>
-            <p><i class="fas fa-arrow-up text-success"></i> <span id="orderChange">0%</span> so với tháng trước</p>
           </div>
           <div class="stat-icon bg-success">
             <i class="fas fa-shopping-cart"></i>
@@ -437,7 +435,6 @@
           <div class="stat-info">
             <h3>Doanh thu</h3>
             <h2 id="totalRevenue">0 VNĐ</h2>
-            <p><i class="fas fa-arrow-up text-success"></i> <span id="revenueChange">0%</span> so với tháng trước</p>
           </div>
           <div class="stat-icon bg-warning">
             <i class="fas fa-dollar-sign"></i>
@@ -450,7 +447,6 @@
           <div class="stat-info">
             <h3>Sản phẩm</h3>
             <h2 id="totalProducts">0</h2>
-            <p><i class="fas fa-arrow-down text-danger"></i> <span id="productChange">15%</span> so với tháng trước</p>
           </div>
           <div class="stat-icon bg-dark">
             <i class="fas fa-box"></i>
@@ -498,7 +494,6 @@
             <th>Tên người dùng</th>
             <th>Email</th>
             <th>Ngày tham gia</th>
-            <th>Vai trò</th>
             <th>Thao tác</th>
           </tr>
         </thead>
@@ -525,7 +520,7 @@
         });
         
         if (!authResponse.ok) {
-          window.location.href = "/login.html";
+          window.location.href = "/admin/html/login.html";
           return;
         }
         
@@ -728,7 +723,6 @@
       </td>
       <td>${customer.Email || 'Chưa có email'}</td>
       <td>${formatDate(customer.RegisterDate)}</td>
-      <td>${customer.Status === 1 ? 'Hoạt động' : 'Khóa'}</td>
       <td>
         <button class="btn btn-outline" onclick="editCustomer(${customer.CustomerID})">
           Sửa
@@ -839,8 +833,6 @@ function formatDate(dateString) {
 function getStatusClass(status) {
   switch (status) {
     case 'completed':
-    case 'paid':
-      return 'active';
     case 'pending':
       return 'pending';
     case 'shipping':
@@ -857,8 +849,6 @@ function getStatusText(status) {
   switch (status) {
     case 'completed':
       return 'Đã hoàn thành';
-    case 'paid':
-      return 'Đã thanh toán';
     case 'pending':
       return 'Đang chờ';
     case 'shipping':
